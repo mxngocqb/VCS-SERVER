@@ -11,7 +11,7 @@ import (
 // @description This is the server for the VCS SMS management system.
 // @version 1.0
 
-// @host localhost:1323
+// @host localhost:8080
 // @BasePath /api/v1
 // @schemes http https
 func main() {
