@@ -17,7 +17,7 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	cfgPath := "./cmd/api/conf.local.yaml"
+	cfgPath := "./conf.local.yaml"
 	cfg, err := config.Load(cfgPath)
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
