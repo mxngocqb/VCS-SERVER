@@ -16,7 +16,8 @@ import (
 	st "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/server/transport"
 	ut "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/user/transport"
 	echoSwagger "github.com/swaggo/echo-swagger"
-	// echojwt "github.com/labstack/echo-jwt/v4"
+	echojwt "github.com/labstack/echo-jwt/v4"
+	custommiddleware "github.com/mxngocqb/VCS-SERVER/back-end/internal/middleware"
 )
 
 // Start initializes and starts the Echo API server
@@ -69,8 +70,8 @@ func Start(cfg *config.Config) error {
 	at.NewHTTP(v1, authService)
 	// Closed group
 	closed := v1.Group("")
-	// closed.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
-	// closed.Use(custommiddleware.RoleMiddleware())
+	closed.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
+	closed.Use(custommiddleware.RoleMiddleware())
 	ut.NewHTTP(closed, userService)
 	st.NewHTTP(closed, serverService)
 	// Start the server
