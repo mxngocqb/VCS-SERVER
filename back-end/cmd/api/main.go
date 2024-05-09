@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	_ "github.com/mxngocqb/VCS-SERVER/back-end/docs"
 	"log"
 )
 

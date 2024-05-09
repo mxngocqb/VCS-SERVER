@@ -68,12 +68,12 @@ func Start(cfg *config.Config) error {
 	v1 := e.Group("/api/v1")
 	// New Create user endpoint
 	at.NewHTTP(v1, authService)
-	// Closed group
-	closed := v1.Group("")
-	closed.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
-	closed.Use(custommiddleware.RoleMiddleware())
-	ut.NewHTTP(closed, userService)
-	st.NewHTTP(closed, serverService)
+	// jwtBlocked group
+	jwtBlocked := v1.Group("")
+	jwtBlocked.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
+	jwtBlocked.Use(custommiddleware.RoleMiddleware())
+	ut.NewHTTP(jwtBlocked, userService)
+	st.NewHTTP(jwtBlocked, serverService)
 	// Start the server
 	e.Logger.Fatal(e.Start(":8080"))
 	// Schedule daily report

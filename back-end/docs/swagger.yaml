@@ -1,0 +1,459 @@
+basePath: /api/v1
+definitions:
+  internal_handler_server_transport.CreateRequest:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      status:
+        type: boolean
+    required:
+    - ip
+    - name
+    - status
+    type: object
+  internal_handler_server_transport.UpdateRequest:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      status:
+        type: boolean
+    required:
+    - ip
+    - name
+    - status
+    type: object
+  internal_handler_user_transport.CreateRequest:
+    properties:
+      password:
+        type: string
+      role_ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      username:
+        type: string
+    required:
+    - password
+    - role_ids
+    - username
+    type: object
+  internal_handler_user_transport.UpdateRequest:
+    properties:
+      password:
+        type: string
+      role_ids:
+        items:
+          type: integer
+        type: array
+      username:
+        type: string
+    required:
+    - password
+    - role_ids
+    - username
+    type: object
+  model.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.ServerSwag:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      status:
+        type: boolean
+    type: object
+  model.UserSwag:
+    properties:
+      password:
+        description: Password should be hashed and never returned in API calls
+        type: string
+      role_ids:
+        items:
+          type: integer
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/model.Role'
+        type: array
+      username:
+        type: string
+    type: object
+  transport.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is the server for the VCS SMS management system.
+  title: VCS SMS API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user and returns a JWT token.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: LoginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/transport.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User login
+      tags:
+      - Authentication
+  /servers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves servers based on provided pagination and optional filters.
+      parameters:
+      - default: 10
+        description: Limit number of servers returned
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset in server list
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Field to sort by
+        in: query
+        name: field
+        type: string
+      - description: Order of sort
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ServerSwag'
+            type: array
+      summary: List servers
+      tags:
+      - Server
+    post:
+      consumes:
+      - application/json
+      description: Adds a new server to the database.
+      parameters:
+      - description: Server data
+        in: body
+        name: server
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_server_transport.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.ServerSwag'
+      summary: Create a server
+      tags:
+      - Server
+  /servers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a server based on ID.
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a server
+      tags:
+      - Server
+    put:
+      consumes:
+      - application/json
+      description: Updates server details.
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Server update data
+        in: body
+        name: server
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_server_transport.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ServerSwag'
+      summary: Update a server
+      tags:
+      - Server
+  /servers/{id}/uptime:
+    get:
+      consumes:
+      - application/json
+      description: Returns the uptime of a server based on a specific date provided
+        in the query.
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Date
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hours of uptime
+          schema:
+            type: number
+      summary: Retrieve server uptime
+      tags:
+      - Server
+  /servers/export:
+    get:
+      description: Exports filtered server data to an Excel file.
+      parameters:
+      - description: Filter by creation date start
+        in: query
+        name: startCreated
+        type: string
+      - description: Filter by creation date end
+        in: query
+        name: endCreated
+        type: string
+      - description: Filter by update date start
+        in: query
+        name: startUpdated
+        type: string
+      - description: Filter by update date end
+        in: query
+        name: endUpdated
+        type: string
+      - description: Field to sort by
+        in: query
+        name: field
+        type: string
+      - description: Order of sort
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Excel file
+          schema:
+            type: file
+      summary: Export servers
+      tags:
+      - Server
+  /servers/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates multiple servers from an uploaded Excel file.
+      parameters:
+      - description: Excel file with server data
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Bulk create servers
+      tags:
+      - Server
+  /servers/report:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a report of server statuses for a given date range and
+        sends it to the specified email address.
+      parameters:
+      - description: Recipient Email
+        in: body
+        name: mail
+        required: true
+        schema:
+          type: string
+      - description: Start Date
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: End Date
+        in: query
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Report sent successfully
+          schema:
+            type: string
+      summary: Generate server status report
+      tags:
+      - Server
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: Create User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_user_transport.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.UserSwag'
+      summary: Create user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get details of a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserSwag'
+      summary: View user
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_user_transport.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserSwag'
+      summary: Update user
+      tags:
+      - Users
+schemes:
+- http
+- https
+swagger: "2.0"
