@@ -51,9 +51,6 @@ func Start(cfg *config.Config) error {
 	authService := auth.NewAuthService(userRepository)
 	serverService := server.NewServerService(serverRepository, rbacService, elasticService)
 	
-	user.NewUserService(userRepository, rbacService)
-	auth.NewAuthService(userRepository)
-	user.NewUserService(userRepository, rbacService)
 	// Set up Echo Server
 	e := echo.New()
 	//e.HideBanner = true
@@ -66,19 +63,25 @@ func Start(cfg *config.Config) error {
 	//e.Use(middleware.Logger(), middleware.Recover())
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 	e.Binder = &util.CustomBinder{Binder: &echo.DefaultBinder{}}
+	
 	// Set up Swagger documentation
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
-	v1 := e.Group("/api/v1")
+	api := e.Group("/api")
+	
 	// New Create user endpoint
-	at.NewHTTP(v1, authService)
+	at.NewHTTP(api, authService)
+	
 	// jwtBlocked group
-	jwtBlocked := v1.Group("")
+	jwtBlocked := api.Group("")
 	jwtBlocked.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
 	jwtBlocked.Use(custommiddleware.RoleMiddleware())
+	
 	ut.NewHTTP(jwtBlocked, userService)
 	st.NewHTTP(jwtBlocked, serverService)
+	
 	// Start the server
 	e.Logger.Fatal(e.Start(":8090"))
+	
 	// Schedule daily report
 	service.ScheduleDailyReport()
 	return nil

@@ -12,7 +12,7 @@ import (
 // @version 1.0
 // @description This is a sample API
 // @host localhost:8090
-// @BasePath /api/v1
+// @BasePath /api
 // @schemes http https
 // @securityDefinitions.apikey Bearer
 // @in header
@@ -21,12 +21,15 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	cfgPath := "./conf.local.yaml"
+	// load config
+	cfgPath := "./conf.yaml"
 	cfg, err := config.Load(cfgPath)
 	if err != nil {
-		log.Fatalf("failed to load configuration: %v", err)
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
+
+	// start API service
 	if err := internal.Start(cfg); err != nil {
-		log.Fatalf("failed to start API: %v", err)
+		log.Fatalf("Failed to start API: %v", err)
 	}
 }

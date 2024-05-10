@@ -51,5 +51,32 @@ func main() {
 		panic("Failed to migrate database")
 	}
 
+	// Seed the database with roles
+	if err := seedRoles(db); err != nil {
+		log.Fatalf("Failed to seed roles: %v", err)
+	}
+
+	fmt.Println("Database seeded successfully!")
+
 	fmt.Println("Database migrated successfully!")
+}
+
+// seedRoles adds predefined roles to the roles table
+func seedRoles(db *gorm.DB) error {
+	// SQL statements for seeding roles
+	queries := []string{
+		"INSERT INTO roles (id, name) VALUES (DEFAULT, 'Admin');",
+		"INSERT INTO roles (id, name) VALUES (DEFAULT, 'User');",
+	}
+
+	// Execute each query
+	for _, query := range queries {
+		result := db.Exec(query)
+		if result.Error != nil {
+			return fmt.Errorf("failed to insert role: %v", result.Error)
+		}
+		fmt.Printf("Inserted role with result: %v\n", result.RowsAffected)
+	}
+
+	return nil
 }

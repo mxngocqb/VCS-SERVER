@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /api
 definitions:
   internal_handler_server_transport.CreateRequest:
     properties:

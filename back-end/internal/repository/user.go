@@ -12,7 +12,6 @@ type UserRepository struct {
 
 // NewUserRepository creates a new instance of UserRepository.
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	// db.AutoMigrate(&model.Role{}, &model.RolePermissions{}, model.User{})
 	return &UserRepository{DB: db}
 }
 

@@ -759,7 +759,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8090",
-	BasePath:         "/api/v1",
+	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
 	Title:            "Your API Title",
 	Description:      "This is a sample API",
