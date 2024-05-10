@@ -36,6 +36,7 @@ func NewHTTP(r *echo.Group, service *user.Service) {
 // Failure 400 {object} echo.HTTPError "Bad Request - Invalid user ID format"
 // Failure 404 {object} echo.HTTPError "Not Found - User not found"
 // Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve user"
+// @Security Bearer
 // @Router /users/{id} [get]
 func (h HTTP) View(c echo.Context) error {
 	id := c.Param("id")
@@ -58,6 +59,7 @@ func (h HTTP) View(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data"
 // Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
 // Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to create user"
+// @Security Bearer
 // @Router /users [post]
 func (h HTTP) Create(c echo.Context) error {
 	r := new(CreateRequest)
@@ -93,6 +95,7 @@ func (h HTTP) Create(c echo.Context) error {
 // Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
 // Failure 404 {object} echo.HTTPError "Not Found - User not found"
 // Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to update user"
+// @Security Bearer
 // @Router /users/{id} [put]
 func (h HTTP) Update(c echo.Context) error {
 	r := new(UpdateRequest)
@@ -129,6 +132,7 @@ func (h HTTP) Update(c echo.Context) error {
 // Failure 404 {object} echo.HTTPError "Not Found - User not found"
 // Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to delete user"
 // @Router /users/{id} [delete]
+// @Security Bearer
 func (h HTTP) Delete(c echo.Context) error {
 	id := c.Param("id")
 	err := h.service.Delete(c, id)

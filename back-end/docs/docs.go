@@ -64,6 +64,11 @@ const docTemplate = `{
         },
         "/servers": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieves servers based on provided pagination and optional filters.",
                 "consumes": [
                     "application/json"
@@ -126,6 +131,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Adds a new server to the database.",
                 "consumes": [
                     "application/json"
@@ -160,6 +170,11 @@ const docTemplate = `{
         },
         "/servers/export": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Exports filtered server data to an Excel file.",
                 "produces": [
                     "application/octet-stream"
@@ -218,6 +233,11 @@ const docTemplate = `{
         },
         "/servers/import": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Creates multiple servers from an uploaded Excel file.",
                 "consumes": [
                     "multipart/form-data"
@@ -251,6 +271,11 @@ const docTemplate = `{
         },
         "/servers/report": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieves a report of server statuses for a given date range and sends it to the specified email address.",
                 "consumes": [
                     "application/json"
@@ -299,6 +324,11 @@ const docTemplate = `{
         },
         "/servers/{id}": {
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Updates server details.",
                 "consumes": [
                     "application/json"
@@ -338,6 +368,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Removes a server based on ID.",
                 "consumes": [
                     "application/json"
@@ -367,6 +402,11 @@ const docTemplate = `{
         },
         "/servers/{id}/uptime": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Returns the uptime of a server based on a specific date provided in the query.",
                 "consumes": [
                     "application/json"
@@ -406,6 +446,11 @@ const docTemplate = `{
         },
         "/users": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new user",
                 "consumes": [
                     "application/json"
@@ -440,6 +485,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Get details of a user by ID",
                 "consumes": [
                     "application/json"
@@ -470,6 +520,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Update a user by ID",
                 "consumes": [
                     "application/json"
@@ -509,6 +564,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete a user by ID",
                 "consumes": [
                     "application/json"
@@ -685,17 +745,24 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8090",
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http", "https"},
-	Title:            "VCS SMS API",
-	Description:      "This is the server for the VCS SMS management system.",
+	Title:            "Your API Title",
+	Description:      "This is a sample API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

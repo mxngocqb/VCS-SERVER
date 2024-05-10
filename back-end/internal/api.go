@@ -10,6 +10,7 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/server"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	"github.com/go-playground/validator/v10"
 	at "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/auth/transport"
@@ -30,10 +31,12 @@ func Start(cfg *config.Config) error {
 		log.Printf("Connected to Postgres")
 	}
 	db.Config.Logger = db.Config.Logger.LogMode(4)
+	
 	// Initialize Redis service
-	util.InitRedis()
+	service.InitRedis()
+
 	// Initialize Elastic service
-	elasticService := util.NewElasticsearch()
+	elasticService := service.NewElasticsearch()
 	if err := elasticService.CreateStatusLogIndex(); err != nil {
 		return err
 	}
@@ -75,8 +78,8 @@ func Start(cfg *config.Config) error {
 	ut.NewHTTP(jwtBlocked, userService)
 	st.NewHTTP(jwtBlocked, serverService)
 	// Start the server
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8090"))
 	// Schedule daily report
-	util.ScheduleDailyReport()
+	service.ScheduleDailyReport()
 	return nil
 }

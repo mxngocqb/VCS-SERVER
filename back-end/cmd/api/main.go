@@ -8,13 +8,16 @@ import (
 	"log"
 )
 
-// @title VCS SMS API
-// @description This is the server for the VCS SMS management system.
+// @title Your API Title
 // @version 1.0
-
-// @host localhost:8080
+// @description This is a sample API
+// @host localhost:8090
 // @BasePath /api/v1
 // @schemes http https
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+
 func main() {
 	_ = godotenv.Load()
 

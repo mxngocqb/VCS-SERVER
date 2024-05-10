@@ -99,11 +99,11 @@ definitions:
     - password
     - username
     type: object
-host: localhost:8080
+host: localhost:8090
 info:
   contact: {}
-  description: This is the server for the VCS SMS management system.
-  title: VCS SMS API
+  description: This is a sample API
+  title: Your API Title
   version: "1.0"
 paths:
   /login:
@@ -177,6 +177,8 @@ paths:
             items:
               $ref: '#/definitions/model.ServerSwag'
             type: array
+      security:
+      - Bearer: []
       summary: List servers
       tags:
       - Server
@@ -198,6 +200,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/model.ServerSwag'
+      security:
+      - Bearer: []
       summary: Create a server
       tags:
       - Server
@@ -217,6 +221,8 @@ paths:
       responses:
         "204":
           description: No Content
+      security:
+      - Bearer: []
       summary: Delete a server
       tags:
       - Server
@@ -243,6 +249,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.ServerSwag'
+      security:
+      - Bearer: []
       summary: Update a server
       tags:
       - Server
@@ -270,6 +278,8 @@ paths:
           description: Hours of uptime
           schema:
             type: number
+      security:
+      - Bearer: []
       summary: Retrieve server uptime
       tags:
       - Server
@@ -308,6 +318,8 @@ paths:
           description: Excel file
           schema:
             type: file
+      security:
+      - Bearer: []
       summary: Export servers
       tags:
       - Server
@@ -330,6 +342,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Bulk create servers
       tags:
       - Server
@@ -363,6 +377,8 @@ paths:
           description: Report sent successfully
           schema:
             type: string
+      security:
+      - Bearer: []
       summary: Generate server status report
       tags:
       - Server
@@ -385,6 +401,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/model.UserSwag'
+      security:
+      - Bearer: []
       summary: Create user
       tags:
       - Users
@@ -404,6 +422,8 @@ paths:
       responses:
         "204":
           description: No Content
+      security:
+      - Bearer: []
       summary: Delete user
       tags:
       - Users
@@ -424,6 +444,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.UserSwag'
+      security:
+      - Bearer: []
       summary: View user
       tags:
       - Users
@@ -450,10 +472,17 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.UserSwag'
+      security:
+      - Bearer: []
       summary: Update user
       tags:
       - Users
 schemes:
 - http
 - https
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

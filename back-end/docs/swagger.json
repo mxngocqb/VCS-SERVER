@@ -5,12 +5,12 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "This is the server for the VCS SMS management system.",
-        "title": "VCS SMS API",
+        "description": "This is a sample API",
+        "title": "Your API Title",
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "localhost:8090",
     "basePath": "/api/v1",
     "paths": {
         "/login": {
@@ -62,6 +62,11 @@
         },
         "/servers": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieves servers based on provided pagination and optional filters.",
                 "consumes": [
                     "application/json"
@@ -124,6 +129,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Adds a new server to the database.",
                 "consumes": [
                     "application/json"
@@ -158,6 +168,11 @@
         },
         "/servers/export": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Exports filtered server data to an Excel file.",
                 "produces": [
                     "application/octet-stream"
@@ -216,6 +231,11 @@
         },
         "/servers/import": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Creates multiple servers from an uploaded Excel file.",
                 "consumes": [
                     "multipart/form-data"
@@ -249,6 +269,11 @@
         },
         "/servers/report": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieves a report of server statuses for a given date range and sends it to the specified email address.",
                 "consumes": [
                     "application/json"
@@ -297,6 +322,11 @@
         },
         "/servers/{id}": {
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Updates server details.",
                 "consumes": [
                     "application/json"
@@ -336,6 +366,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Removes a server based on ID.",
                 "consumes": [
                     "application/json"
@@ -365,6 +400,11 @@
         },
         "/servers/{id}/uptime": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Returns the uptime of a server based on a specific date provided in the query.",
                 "consumes": [
                     "application/json"
@@ -404,6 +444,11 @@
         },
         "/users": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new user",
                 "consumes": [
                     "application/json"
@@ -438,6 +483,11 @@
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Get details of a user by ID",
                 "consumes": [
                     "application/json"
@@ -468,6 +518,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Update a user by ID",
                 "consumes": [
                     "application/json"
@@ -507,6 +562,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete a user by ID",
                 "consumes": [
                     "application/json"
@@ -682,6 +742,13 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

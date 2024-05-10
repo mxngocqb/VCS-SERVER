@@ -8,7 +8,7 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 	"net/http"
@@ -30,10 +30,10 @@ type IService interface {
 type Service struct {
 	repository   *repository.ServerRepository
 	rbac    *handler.RbacService
-	elastic *util.ElasticService
+	elastic *service.ElasticService
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *util.ElasticService) *Service {
+func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService) *Service {
 	return &Service{
 		repository:   repository,
 		rbac:    rbac,
@@ -44,10 +44,10 @@ func NewServerService(repository *repository.ServerRepository, rbac *handler.Rba
 // View retrieves servers from the database with optional pagination and status filtering.
 func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, error) {
 	ctx := c.Request().Context()
-	key := util.ConstructCacheKey(perPage, offset, status, field, order)
+	key := service.ConstructCacheKey(perPage, offset, status, field, order)
 
 	// Try to get data from Redis first
-	val, err := util.RDB.Get(ctx, key).Result()
+	val, err := service.RDB.Get(ctx, key).Result()
 	if err == nil {
 		var servers []model.Server
 		if err := json.Unmarshal([]byte(val), &servers); err == nil {
@@ -63,7 +63,7 @@ func (s *Service) View(c echo.Context, perPage int, offset int, status, field, o
 
 	// Marshal data and save to Redis with an expiration time
 	marshaled, _ := json.Marshal(servers)
-	util.RDB.Set(ctx, key, marshaled, 30*time.Minute) // Adjust expiration as needed
+	service.RDB.Set(ctx, key, marshaled, 30*time.Minute) // Adjust expiration as needed
 
 	return servers, nil
 }
@@ -100,7 +100,7 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 		return &model.Server{}, err
 	}
 
-	util.InvalidateCache()
+	service.InvalidateCache()
 	return server, nil
 }
 
@@ -131,7 +131,7 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 		}
 	}
 
-	util.InvalidateCache()
+	service.InvalidateCache()
 	return createdServers, successLines, failedLines, nil
 }
 
@@ -172,7 +172,7 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 		}
 	}
 
-	util.InvalidateCache()
+	service.InvalidateCache()
 	return updatedServer, nil
 }
 
@@ -218,7 +218,7 @@ func (s *Service) Delete(c echo.Context, id string) error {
 		return err
 	}
 
-	util.InvalidateCache()
+	service.InvalidateCache()
 	return nil
 }
 
@@ -324,7 +324,7 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 
 	mailArr := []string{mail}
 
-	err = util.SendReport(mailArr, startTime, endTime)
+	err = service.SendReport(mailArr, startTime, endTime)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
 	}

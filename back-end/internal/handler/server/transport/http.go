@@ -46,6 +46,7 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 // Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
 // Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
 // @Router /servers [get]
+// @Security Bearer
 func (h HTTP) View(c echo.Context) error {
 	fmt.Println("View call")
 	r := new(ViewRequest)
@@ -76,6 +77,7 @@ func (h HTTP) View(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Invalid server data provided"
 // Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
 // @Router /servers [post]
+// @Security Bearer
 func (h HTTP) Create(c echo.Context) error {
 	r := new(CreateRequest)
 	if err := c.Bind(r); err != nil {
@@ -111,6 +113,7 @@ func (h HTTP) Create(c echo.Context) error {
 // Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"
 // @Router /servers/{id} [put]
+// @Security Bearer
 func (h HTTP) Update(c echo.Context) error {
 	// Retrieve the request body
 	r := new(UpdateRequest)
@@ -148,6 +151,7 @@ func (h HTTP) Update(c echo.Context) error {
 // Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // Failure 500 {object} echo.HTTPError "Internal server error - Failed to delete server"
 // @Router /servers/{id} [delete]
+// @Security Bearer
 func (h HTTP) Delete(c echo.Context) error {
 	fmt.Println("Delete call")
 	id := c.Param("id")
@@ -170,6 +174,7 @@ func (h HTTP) Delete(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
 // Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
 // @Router /servers/import [post]
+// @Security Bearer
 func (h HTTP) CreateMany(c echo.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -218,6 +223,7 @@ func (h HTTP) CreateMany(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
 // Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
 // @Router /servers/export [get]
+// @Security Bearer
 func (h HTTP) Export(c echo.Context) error {
 	// Optional query parameters
 	startCreated := c.QueryParam("startCreated")
@@ -247,6 +253,7 @@ func (h HTTP) Export(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Invalid date format or server ID"
 // Failure 500 {object} echo.HTTPError "Internal server error occurred while retrieving uptime"
 // @Router /servers/{id}/uptime [get]
+// @Security Bearer
 func (h HTTP) GetServerUpTime(c echo.Context) error {
 	serverID := c.Param("id")
 	date := c.QueryParam("date")
@@ -272,6 +279,7 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 // Failure 400 {object} echo.HTTPError "Invalid date format or email"
 // Failure 500 {object} echo.HTTPError "Error occurred while sending the report"
 // @Router /servers/report [get]
+// @Security Bearer
 func (h HTTP) GetServersReport(c echo.Context) error {
 	r := new(GetServersReportRequest)
 	if err := c.Bind(r); err != nil {

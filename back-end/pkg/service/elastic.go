@@ -1,4 +1,4 @@
-package util
+package service
 
 import (
 	"context"
@@ -202,14 +202,14 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 // CreateStatusLogIndex creates an index for server documents in Elasticsearch.
 func (es *ElasticService) CreateStatusLogIndex() error {
 	// Check if the index already exists
-	existsRes, err := es.Client.Indices.Exists([]string{"server_status_logs"})
+	res, err := es.Client.Indices.Exists([]string{"server_status_logs"})
 	if err != nil {
 		return err
 	}
-	defer existsRes.Body.Close()
+	defer res.Body.Close()
 
 	// If the index doesn't exist, create it
-	if existsRes.StatusCode == 404 {
+	if res.StatusCode == 404 {
 		createRes, err := es.Client.Indices.Create(
 			"server_status_logs",
 			es.Client.Indices.Create.WithBody(strings.NewReader(`{
