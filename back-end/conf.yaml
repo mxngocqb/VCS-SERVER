@@ -10,4 +10,7 @@ jwt:
     secret: secret
     expiration: 3600
 
-
+redis:
+    host: localhost:6379
+    expiration: 3600
+    password: 

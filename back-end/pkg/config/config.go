@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	DB  *Database `yaml:"database,omitempty"`
-	JWT *JWT      `yaml:"JWT,omitempty"`
+	DB    *Database `yaml:"database,omitempty"`
+	JWT   *JWT      `yaml:"JWT,omitempty"`
+	REDIS *Redis    `yaml:"redis,omitempty"`
 }
 
 // Load reads the config file and returns a Config struct
@@ -36,4 +37,11 @@ type Database struct {
 type JWT struct {
 	Secret     string `yaml:"secret,omitempty"`
 	Expiration int    `yaml:"expiration,omitempty"`
+}
+
+// Redis redis struct
+type Redis struct {
+	Addr   string `yaml:"host,omitempty"`
+	Pass   string `yaml:"password,omitempty"`
+	Expire int    `yaml:"expiration,omitempty"`
 }

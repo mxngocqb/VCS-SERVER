@@ -50,6 +50,7 @@ func main() {
 	if err != nil {
 		panic("Failed to migrate database")
 	}
+	fmt.Println("Database migrated successfully!")
 
 	// Seed the database with roles
 	if err := seedRoles(db); err != nil {
@@ -57,8 +58,6 @@ func main() {
 	}
 
 	fmt.Println("Database seeded successfully!")
-
-	fmt.Println("Database migrated successfully!")
 }
 
 // seedRoles adds predefined roles to the roles table

@@ -1,16 +1,18 @@
 package util
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHashPassword(t *testing.T) {
-	password := "securepassword123"
+	password := "admin"
 
 	// Test hashing the password
 	hashedPassword, err := HashPassword(password)
+	log.Println(hashedPassword)
 	assert.NoError(t, err, "Hashing the password should not produce an error")
 	assert.NotEqual(t, password, hashedPassword, "Hashed password should be different from the plaintext password")
 
