@@ -86,7 +86,5 @@ func Start(cfg *config.Config) error {
 	// Start the server
 	e.Logger.Fatal(e.Start(":8090"))
 
-	// Schedule daily report
-	service.ScheduleDailyReport()
 	return nil
 }

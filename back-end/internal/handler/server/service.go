@@ -313,25 +313,26 @@ func (s *Service) GetServerUptime(c echo.Context, serverID string, date string) 
 
 // GetServerReport sends a report of server statuses within a specified date range to the client.
 func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error {
-	layout := "2006-01-02"
-	location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
+	// layout := "2006-01-02"
+	// location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
 
-	startTime, err := time.ParseInLocation(layout, start, location)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid start date format")
-	}
+	// startTime, err := time.ParseInLocation(layout, start, location)
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid start date format")
+	// }
 
-	endTime, err := time.ParseInLocation(layout, end, location)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
-	}
+	// endTime, err := time.ParseInLocation(layout, end, location)
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
+	// }
 
-	mailArr := []string{mail}
+	// mailArr := []string{mail}
 
-	err = service.SendReport(mailArr, startTime, endTime)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
-	}
+	// err = service.SendReport(mailArr, startTime, endTime)
+	
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
+	// }
 
 	return c.String(http.StatusOK, "Report sent successfully")
 }

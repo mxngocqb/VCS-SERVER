@@ -1,7 +1,13 @@
 package main
 
-import "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
+import (
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report"
+)
 
 func main() {
-	service.ScheduleDailyReport()
+	report.ScheduleDailyReport()
+
+	// Keep the program running
+    select {}
+
 }
