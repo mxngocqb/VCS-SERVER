@@ -5,7 +5,7 @@ package report;
 option go_package="github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/greet/proto";
 
 service ReportService {
-    rpc SendReport (SendReportRequest) returns (SendReportResponse);
+    rpc Report (SendReportRequest) returns (SendReportResponse);
 }
 
 message SendReportRequest {

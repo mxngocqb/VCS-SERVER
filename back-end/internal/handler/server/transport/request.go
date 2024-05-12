@@ -24,5 +24,5 @@ type UpdateRequest struct {
 }
 
 type GetServersReportRequest struct {
-	Mail string `json:"mail" validate:"required, email"`
+	Mail string `json:"mail" validate:"email"`
 }

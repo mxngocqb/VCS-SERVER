@@ -3,10 +3,12 @@ package server
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	// labstak/echo is a web framework for Go
 	"github.com/labstack/echo/v4"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
@@ -15,7 +17,12 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
+	// gRPC framework for Go
+	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
+
 
 type IService interface {
 	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, error)
@@ -313,22 +320,40 @@ func (s *Service) GetServerUptime(c echo.Context, serverID string, date string) 
 
 // GetServerReport sends a report of server statuses within a specified date range to the client.
 func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error {
-	// layout := "2006-01-02"
-	// location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
+	layout := "2006-01-02"
+	location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
 
-	// startTime, err := time.ParseInLocation(layout, start, location)
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid start date format")
-	// }
+	startTime, err := time.ParseInLocation(layout, start, location)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid start date format")
+	} else{
+		log.Println("Start time: ", startTime)
+	}
 
-	// endTime, err := time.ParseInLocation(layout, end, location)
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
-	// }
+	endTime, err := time.ParseInLocation(layout, end, location)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
+	} else{
+		log.Println("End time: ", endTime)
+	}
 
-	// mailArr := []string{mail}
+	mailArr := []string{mail}
 
-	// err = service.SendReport(mailArr, startTime, endTime)
+	// Create a gRPC client
+	var addr string = "127.0.0.1:50051" // Address of the gRPC server
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	
+	if err != nil {
+		log.Printf("Failed to dial server: %v", err)
+	}
+	
+	defer conn.Close()
+	
+	client := pb.NewReportServiceClient(conn)
+
+	doSendReport(client, mailArr, start, end)
+
+	// err = report.SendReport(mailArr, startTime, endTime)
 	
 	// if err != nil {
 	// 	return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())

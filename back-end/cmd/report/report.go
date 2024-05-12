@@ -11,18 +11,24 @@ import (
 
 func (s *Server) Report(ctx context.Context, in *pb.SendReportRequest) (*pb.SendReportResponse, error) {
 	log.Printf("Received: %v", in)
-	
-	// Parse start and end time
-	startTime, err := time.Parse(time.RFC3339, in.Start)
+
+	layout := "2006-01-02"
+	location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
+
+	startTime, err := time.ParseInLocation(layout, in.Start, location)
 	if err != nil {
-		return nil, err
+		return &pb.SendReportResponse{Message: "Error parsing time: " + err.Error()}, nil
+	} else {
+		log.Println("Start time: ", startTime)
 	}
 
-	endTime, err := time.Parse(time.RFC3339, in.End)
+	endTime, err := time.ParseInLocation(layout, in.End, location)
 	if err != nil {
-		return nil, err
+		return &pb.SendReportResponse{Message: "Error parsing time: " + err.Error()}, nil
+	} else {
+		log.Println("End time: ", endTime)
 	}
-	
+
 	// Send report
 	res := report.SendReport(in.Mail, startTime, endTime)
 
