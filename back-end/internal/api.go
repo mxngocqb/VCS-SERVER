@@ -37,7 +37,6 @@ func Start(cfg *config.Config) error {
 	redisConfig := config.NewRedisConfig(cfg)
 	redisClient, expiration, err := config.ConnectRedis(redisConfig)
 	serverCache := cache.NewServerRedisCache(redisClient, expiration)
-	log.Printf("Server cache", serverCache)
 
 	// Initialize Elastic service
 	elasticService := service.NewElasticsearch()
@@ -53,7 +52,8 @@ func Start(cfg *config.Config) error {
 	rbacService := handler.NewRbacService(userRepository)
 	userService := user.NewUserService(userRepository, rbacService)
 	authService := auth.NewAuthService(userRepository)
-	serverService := server.NewServerService(serverRepository, rbacService, elasticService)
+	serverService := server.NewServerService(serverRepository, rbacService, elasticService, serverCache)
+	// serverService := server.NewServerService(serverRepository, rbacService, elasticService)
 
 	// Set up Echo Server
 	e := echo.New()

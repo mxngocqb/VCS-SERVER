@@ -3,8 +3,10 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
+
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/redis/go-redis/v9"
 )
@@ -59,14 +61,16 @@ func (serverCache *serverCacheImpl) GetMultiRequest(key string) []model.Server {
 	// Retrieve data from Redis
 	data, err := serverCache.client.Get(ctx, key).Result()
 	if err != nil {
-		log.Println("Error getting data from Redis:", err)
+		log.Printf("Error getting data from Redis:", err)
 		return nil
+	} else{
+		log.Printf("Cached data from Redis")
 	}
 
 	// Decode JSON
 	var drivers []model.Server
 	if err := json.Unmarshal([]byte(data), &drivers); err != nil {
-		log.Println("Error unmarshalling JSON:", err)
+		log.Printf("Error unmarshalling JSON:", err)
 		return nil
 	}
 
@@ -77,14 +81,23 @@ func (serverCache *serverCacheImpl) SetMultiRequest(key string, value []model.Se
 	// Encode slice of Driver objects to JSON
 	jsonData, err := json.Marshal(value)
 	if err != nil {
-		log.Println("Error marshalling JSON:", err)
+		log.Printf("Error marshalling JSON:", err)
 		panic(err)
+	} else{
+		log.Printf("Marshalled JSON:", jsonData)
 	}
 
 	// Save to Redis
 	err = serverCache.client.Set(ctx, key, jsonData, serverCache.expires).Err()
 	if err != nil {
-		log.Println("Error setting data in Redis:", err)
+		log.Printf("Error setting data in Redis:", err)
 		panic(err)
+	} else{
+		log.Printf("Data saved in Redis")
 	}
+}
+
+
+func (serverCache *serverCacheImpl) ConstructCacheKey(perPage, offset int, status, field, order string) string {
+	return fmt.Sprintf("servers:%d:%d:%s:%s:%s", perPage, offset, status, field, order)
 }

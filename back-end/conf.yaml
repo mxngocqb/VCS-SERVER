@@ -12,5 +12,5 @@ jwt:
 
 redis:
     host: localhost:6379
-    expiration: 3600
+    expiration: 60
     password: 

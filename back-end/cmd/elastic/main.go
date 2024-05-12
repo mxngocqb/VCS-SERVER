@@ -10,6 +10,7 @@ func main() {
 	es := service.NewElasticsearch()
 
 	res, err := es.Client.Info()
+	
 	if err != nil {
 		log.Fatalf("Error getting response from Elasticsearch: %s", err)
 	}

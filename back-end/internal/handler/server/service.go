@@ -1,19 +1,20 @@
 package server
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type IService interface {
@@ -28,31 +29,32 @@ type IService interface {
 }
 
 type Service struct {
-	repository   *repository.ServerRepository
-	rbac    *handler.RbacService
-	elastic *service.ElasticService
+	repository *repository.ServerRepository
+	rbac       *handler.RbacService
+	elastic    *service.ElasticService
+	cache      cache.ServerCache
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService) *Service {
+func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache) *Service {
 	return &Service{
-		repository:   repository,
-		rbac:    rbac,
-		elastic: elastic,
+		repository: repository,
+		rbac:       rbac,
+		elastic:    elastic,
+		cache:      sc,
 	}
 }
 
 // View retrieves servers from the database with optional pagination and status filtering.
 func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, error) {
-	ctx := c.Request().Context()
-	key := service.ConstructCacheKey(perPage, offset, status, field, order)
+	// ctx := c.Request().Context()
+	key := s.cache.ConstructCacheKey(perPage, offset, status, field, order)
 
 	// Try to get data from Redis first
-	val, err := service.RDB.Get(ctx, key).Result()
-	if err == nil {
-		var servers []model.Server
-		if err := json.Unmarshal([]byte(val), &servers); err == nil {
-			return servers, nil
-		}
+	values := s.cache.GetMultiRequest(key)
+
+	if values != nil {
+		// Data found in cache
+		return values, nil
 	}
 
 	// Data not found in cache, fetch from database
@@ -61,10 +63,7 @@ func (s *Service) View(c echo.Context, perPage int, offset int, status, field, o
 		return nil, err
 	}
 
-	// Marshal data and save to Redis with an expiration time
-	marshaled, _ := json.Marshal(servers)
-	service.RDB.Set(ctx, key, marshaled, 30*time.Minute) // Adjust expiration as needed
-
+	s.cache.SetMultiRequest(key, servers) // Adjust expiration as needed
 	return servers, nil
 }
 
@@ -99,8 +98,10 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 		// Handle logging error, you may choose to return an error or just log it
 		return &model.Server{}, err
 	}
+	
+	// Cache the server
+	s.cache.Set(strconv.Itoa(int(server.ID)), server) 
 
-	service.InvalidateCache()
 	return server, nil
 }
 
@@ -131,7 +132,6 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 		}
 	}
 
-	service.InvalidateCache()
 	return createdServers, successLines, failedLines, nil
 }
 
@@ -172,7 +172,9 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 		}
 	}
 
-	service.InvalidateCache()
+	// Cache the server
+	s.cache.Set(strconv.Itoa(int(server.ID)), server) 
+
 	return updatedServer, nil
 }
 
@@ -218,7 +220,9 @@ func (s *Service) Delete(c echo.Context, id string) error {
 		return err
 	}
 
-	service.InvalidateCache()
+	// Cache the server
+	s.cache.Delete(strconv.Itoa(int(server.ID))) 
+
 	return nil
 }
 
