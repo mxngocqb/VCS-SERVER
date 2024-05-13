@@ -16,16 +16,17 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/xuri/excelize/v2"
+	// "golang.org/x/text/internal/number"
 	"gorm.io/gorm"
+
 	// gRPC framework for Go
 	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-
 type IService interface {
-	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, error)
+	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int64, error)
 	Create(c echo.Context, server *model.Server) (*model.Server, error)
 	CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error)
 	Update(c echo.Context, id string, server *model.Server) (*model.Server, error)
@@ -52,26 +53,28 @@ func NewServerService(repository *repository.ServerRepository, rbac *handler.Rba
 }
 
 // View retrieves servers from the database with optional pagination and status filtering.
-func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, error) {
+func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int64, error) {
 	// ctx := c.Request().Context()
 	key := s.cache.ConstructCacheKey(perPage, offset, status, field, order)
-
+	key_total := key + "_total"
 	// Try to get data from Redis first
 	values := s.cache.GetMultiRequest(key)
+	total := s.cache.GetTotalServer(key_total)
 
-	if values != nil {
+	if values != nil && total != -1 {
 		// Data found in cache
-		return values, nil
+		return values, total, nil
 	}
 
 	// Data not found in cache, fetch from database
-	servers, err := s.repository.GetServersFiltered(perPage, offset, status, field, order)
+	servers, numberOfServer, err := s.repository.GetServersFiltered(perPage, offset, status, field, order)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
 
 	s.cache.SetMultiRequest(key, servers) // Adjust expiration as needed
-	return servers, nil
+	s.cache.SetTotalServer(key_total, numberOfServer)
+	return servers, numberOfServer, nil
 }
 
 // Create creates a new server.
@@ -105,9 +108,9 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 		// Handle logging error, you may choose to return an error or just log it
 		return &model.Server{}, err
 	}
-	
+
 	// Cache the server
-	s.cache.Set(strconv.Itoa(int(server.ID)), server) 
+	s.cache.Set(strconv.Itoa(int(server.ID)), server)
 
 	return server, nil
 }
@@ -180,7 +183,7 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 	}
 
 	// Cache the server
-	s.cache.Set(strconv.Itoa(int(server.ID)), server) 
+	s.cache.Set(strconv.Itoa(int(server.ID)), server)
 
 	return updatedServer, nil
 }
@@ -228,7 +231,7 @@ func (s *Service) Delete(c echo.Context, id string) error {
 	}
 
 	// Cache the server
-	s.cache.Delete(strconv.Itoa(int(server.ID))) 
+	s.cache.Delete(strconv.Itoa(int(server.ID)))
 
 	return nil
 }
@@ -329,24 +332,24 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 
 	if _, err := time.ParseInLocation(layout, end, location); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
-	} 
+	}
 
 	mailArr := []string{mail}
 
 	// Create a gRPC client
 	var addr string = "127.0.0.1:50051" // Address of the gRPC server
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	
+
 	if err != nil {
 		log.Printf("Failed to dial server: %v", err)
 	}
-	
+
 	defer conn.Close()
-	
+
 	client := pb.NewReportServiceClient(conn)
 
 	err = doSendReport(client, mailArr, start, end)
-	
+
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
 	}

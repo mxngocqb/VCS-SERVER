@@ -57,14 +57,17 @@ func (h HTTP) View(c echo.Context) error {
 		return err
 	}
 
-	fmt.Println(r)
-
-	servers, err := h.service.View(c, r.Limit, r.Offset, r.Status, r.Field, r.Order)
+	servers, numberOfServers, err := h.service.View(c, r.Limit, r.Offset, r.Status, r.Field, r.Order)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch servers: "+err.Error())
 	}
 
-	return c.JSON(http.StatusOK, servers)
+	response := ServerResponse{
+		Total: numberOfServers,
+		Data:  servers,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // Create adds a new server to the database.

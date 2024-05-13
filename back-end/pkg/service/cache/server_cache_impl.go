@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
@@ -91,6 +92,37 @@ func (serverCache *serverCacheImpl) SetMultiRequest(key string, value []model.Se
 		panic(err)
 	} else{
 		log.Printf("Data saved in Redis")
+	}
+}
+
+func (serverCache *serverCacheImpl) GetTotalServer(key string) int64 {
+	// Retrieve data from Redis
+	numberOfServerStr, err := serverCache.client.Get(ctx, key).Result()
+	if err != nil {
+		log.Printf("Error getting data from Redis:", err)
+		return -1
+	} else{
+		log.Printf("Cached total server from Redis")
+	}
+
+	numberOfServer, _ := strconv.ParseInt(numberOfServerStr, 10, 64)
+	return numberOfServer
+}
+
+func (serverCache *serverCacheImpl) SetTotalServer(key string, value int64)  {
+	// Encode slice of Driver objects to JSON
+	jsonData, err := json.Marshal(value)
+	if err != nil {
+		log.Printf("Error marshalling JSON:", err)
+		panic(err)
+	}
+	// Save to Redis
+	err = serverCache.client.Set(ctx, key, jsonData, serverCache.expires).Err()
+	if err != nil {
+		log.Printf("Error setting data in Redis:", err)
+		panic(err)
+	} else{
+		log.Printf("Total server saved in Redis")
 	}
 }
 
