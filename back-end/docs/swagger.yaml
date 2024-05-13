@@ -1,5 +1,51 @@
 basePath: /api
 definitions:
+  echo.HTTPError:
+    properties:
+      message: {}
+    type: object
+  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+      status:
+        type: boolean
+    type: object
+  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag:
+    properties:
+      password:
+        description: Password should be hashed and never returned in API calls
+        type: string
+      role_ids:
+        items:
+          type: integer
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role'
+        type: array
+      username:
+        type: string
+    type: object
+  internal_handler_auth_transport.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
   internal_handler_server_transport.CreateRequest:
     properties:
       ip:
@@ -24,7 +70,6 @@ definitions:
     required:
     - ip
     - name
-    - status
     type: object
   internal_handler_user_transport.CreateRequest:
     properties:
@@ -57,48 +102,6 @@ definitions:
     - role_ids
     - username
     type: object
-  model.Role:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-    type: object
-  model.ServerSwag:
-    properties:
-      ip:
-        type: string
-      name:
-        type: string
-      status:
-        type: boolean
-    type: object
-  model.UserSwag:
-    properties:
-      password:
-        description: Password should be hashed and never returned in API calls
-        type: string
-      role_ids:
-        items:
-          type: integer
-        type: array
-      roles:
-        items:
-          $ref: '#/definitions/model.Role'
-        type: array
-      username:
-        type: string
-    type: object
-  transport.LoginRequest:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    required:
-    - password
-    - username
-    type: object
 host: localhost:8090
 info:
   contact: {}
@@ -117,7 +120,7 @@ paths:
         name: LoginRequest
         required: true
         schema:
-          $ref: '#/definitions/transport.LoginRequest'
+          $ref: '#/definitions/internal_handler_auth_transport.LoginRequest'
       produces:
       - application/json
       responses:
@@ -175,8 +178,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.ServerSwag'
+              $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
             type: array
+        "400":
+          description: Invalid parameters for limit or offset
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Failed to fetch servers due to server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: List servers
@@ -199,7 +210,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.ServerSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
+        "400":
+          description: Invalid server data provided
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Failed to create server due to server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Create a server
@@ -221,6 +240,14 @@ paths:
       responses:
         "204":
           description: No Content
+        "404":
+          description: Not found - Server not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error - Failed to delete server
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Delete a server
@@ -248,7 +275,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.ServerSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
+        "400":
+          description: Bad request - Invalid update data
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not found - Server not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error - Failed to update server
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Update a server
@@ -278,6 +317,14 @@ paths:
           description: Hours of uptime
           schema:
             type: number
+        "400":
+          description: Invalid date format or server ID
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error occurred while retrieving uptime
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Retrieve server uptime
@@ -318,6 +365,14 @@ paths:
           description: Excel file
           schema:
             type: file
+        "400":
+          description: Bad request - Invalid filter parameters
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error - Failed to generate or send file
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Export servers
@@ -342,6 +397,14 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "400":
+          description: Bad request - Invalid or corrupt file
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error - Failed to parse or save servers
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Bulk create servers
@@ -377,6 +440,14 @@ paths:
           description: Report sent successfully
           schema:
             type: string
+        "400":
+          description: Invalid date format or email
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Error occurred while sending the report
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Generate server status report
@@ -400,7 +471,19 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+        "400":
+          description: Bad Request - Invalid user data
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - Insufficient permissions
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error - Unable to create user
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Create user
@@ -422,6 +505,18 @@ paths:
       responses:
         "204":
           description: No Content
+        "403":
+          description: Forbidden - Insufficient permissions
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found - User not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error - Unable to delete user
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Delete user
@@ -443,7 +538,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+        "400":
+          description: Bad Request - Invalid user ID format
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found - User not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error - Unable to retrieve user
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: View user
@@ -471,7 +578,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+        "400":
+          description: Bad Request - Invalid user data or ID
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - Insufficient permissions
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found - User not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error - Unable to update user
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
       summary: Update user

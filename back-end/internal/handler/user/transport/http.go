@@ -33,9 +33,9 @@ func NewHTTP(r *echo.Group, service *user.Service) {
 // @Produce json
 // @Param id path int true "User ID"
 // @Success 200 {object} model.UserSwag
-// Failure 400 {object} echo.HTTPError "Bad Request - Invalid user ID format"
-// Failure 404 {object} echo.HTTPError "Not Found - User not found"
-// Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve user"
+// @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user ID format"
+// @Failure 404 {object} echo.HTTPError "Not Found - User not found"
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve user"
 // @Security Bearer
 // @Router /users/{id} [get]
 func (h HTTP) View(c echo.Context) error {
@@ -56,9 +56,9 @@ func (h HTTP) View(c echo.Context) error {
 // @Produce json
 // @Param user body CreateRequest true "Create User"
 // @Success 201 {object} model.UserSwag
-// Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data"
-// Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
-// Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to create user"
+// @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data"
+// @Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to create user"
 // @Security Bearer
 // @Router /users [post]
 func (h HTTP) Create(c echo.Context) error {
@@ -91,10 +91,10 @@ func (h HTTP) Create(c echo.Context) error {
 // @Param id path int true "User ID"
 // @Param user body UpdateRequest true "Update User"
 // @Success 200 {object} model.UserSwag
-// Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data or ID"
-// Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
-// Failure 404 {object} echo.HTTPError "Not Found - User not found"
-// Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to update user"
+// @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data or ID"
+// @Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
+// @Failure 404 {object} echo.HTTPError "Not Found - User not found"
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to update user"
 // @Security Bearer
 // @Router /users/{id} [put]
 func (h HTTP) Update(c echo.Context) error {
@@ -128,9 +128,9 @@ func (h HTTP) Update(c echo.Context) error {
 // @Produce json
 // @Param id path int true "User ID"
 // @Success 204
-// Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
-// Failure 404 {object} echo.HTTPError "Not Found - User not found"
-// Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to delete user"
+// @Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
+// @Failure 404 {object} echo.HTTPError "Not Found - User not found"
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to delete user"
 // @Router /users/{id} [delete]
 // @Security Bearer
 func (h HTTP) Delete(c echo.Context) error {

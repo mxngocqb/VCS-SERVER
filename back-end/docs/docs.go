@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/transport.LoginRequest"
+                            "$ref": "#/definitions/internal_handler_auth_transport.LoginRequest"
                         }
                     }
                 ],
@@ -124,8 +124,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ServerSwag"
+                                "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters for limit or offset",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch servers due to server error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -162,7 +174,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.ServerSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid server data provided",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create server due to server error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -227,6 +251,18 @@ const docTemplate = `{
                         "schema": {
                             "type": "file"
                         }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid filter parameters",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Failed to generate or send file",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     }
                 }
             }
@@ -264,6 +300,18 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid or corrupt file",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Failed to parse or save servers",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -318,6 +366,18 @@ const docTemplate = `{
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "400": {
+                        "description": "Invalid date format or email",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred while sending the report",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     }
                 }
             }
@@ -362,7 +422,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ServerSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid update data",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - Server not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Failed to update server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -396,6 +474,18 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not found - Server not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Failed to delete server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     }
                 }
             }
@@ -440,6 +530,18 @@ const docTemplate = `{
                         "schema": {
                             "type": "number"
                         }
+                    },
+                    "400": {
+                        "description": "Invalid date format or server ID",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error occurred while retrieving uptime",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     }
                 }
             }
@@ -477,7 +579,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid user data",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to create user",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -514,7 +634,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid user ID format",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - User not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to retrieve user",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -558,7 +696,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid user data or ID",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - User not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to update user",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -592,12 +754,100 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - User not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to delete user",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
+        "echo.HTTPError": {
+            "type": "object",
+            "properties": {
+                "message": {}
+            }
+        },
+        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "description": "Password should be hashed and never returned in API calls",
+                    "type": "string"
+                },
+                "role_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role"
+                    }
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler_auth_transport.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handler_server_transport.CreateRequest": {
             "type": "object",
             "required": [
@@ -621,8 +871,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "ip",
-                "name",
-                "status"
+                "name"
             ],
             "properties": {
                 "ip": {
@@ -675,70 +924,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Role": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.ServerSwag": {
-            "type": "object",
-            "properties": {
-                "ip": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "model.UserSwag": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "description": "Password should be hashed and never returned in API calls",
-                    "type": "string"
-                },
-                "role_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Role"
-                    }
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "transport.LoginRequest": {
-            "type": "object",
-            "required": [
-                "password",
-                "username"
-            ],
-            "properties": {
-                "password": {
-                    "type": "string"
                 },
                 "username": {
                     "type": "string"

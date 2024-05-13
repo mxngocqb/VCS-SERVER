@@ -44,8 +44,8 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 // @Param field query string false "Field to sort by"
 // @Param order query string false "Order of sort" Enums(asc, desc)
 // @Success 200 {array} model.ServerSwag
-// Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
-// Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
+// @Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
+// @Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
 // @Router /servers [get]
 // @Security Bearer
 func (h HTTP) View(c echo.Context) error {
@@ -75,8 +75,8 @@ func (h HTTP) View(c echo.Context) error {
 // @Produce json
 // @Param server body CreateRequest true "Server data"
 // @Success 201 {object} model.ServerSwag
-// Failure 400 {object} echo.HTTPError "Invalid server data provided"
-// Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
+// @Failure 400 {object} echo.HTTPError "Invalid server data provided"
+// @Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
 // @Router /servers [post]
 // @Security Bearer
 func (h HTTP) Create(c echo.Context) error {
@@ -110,9 +110,9 @@ func (h HTTP) Create(c echo.Context) error {
 // @Param id path int true "Server ID"
 // @Param server body UpdateRequest true "Server update data"
 // @Success 200 {object} model.ServerSwag
-// Failure 400 {object} echo.HTTPError "Bad request - Invalid update data"
-// Failure 404 {object} echo.HTTPError "Not found - Server not found"
-// Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid update data"
+// @Failure 404 {object} echo.HTTPError "Not found - Server not found"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"
 // @Router /servers/{id} [put]
 // @Security Bearer
 func (h HTTP) Update(c echo.Context) error {
@@ -149,8 +149,8 @@ func (h HTTP) Update(c echo.Context) error {
 // @Produce json
 // @Param id path int true "Server ID"
 // @Success 204
-// Failure 404 {object} echo.HTTPError "Not found - Server not found"
-// Failure 500 {object} echo.HTTPError "Internal server error - Failed to delete server"
+// @Failure 404 {object} echo.HTTPError "Not found - Server not found"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to delete server"
 // @Router /servers/{id} [delete]
 // @Security Bearer
 func (h HTTP) Delete(c echo.Context) error {
@@ -172,8 +172,8 @@ func (h HTTP) Delete(c echo.Context) error {
 // @Produce json
 // @Param file formData file true "Excel file with server data"
 // @Success 200 {object} map[string]interface{}
-// Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
-// Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
 // @Router /servers/import [post]
 // @Security Bearer
 func (h HTTP) CreateMany(c echo.Context) error {
@@ -223,8 +223,8 @@ func (h HTTP) CreateMany(c echo.Context) error {
 // @Param field query string false "Field to sort by"
 // @Param order query string false "Order of sort"
 // @Success 200 {file} file "Excel file"
-// Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
-// Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
 // @Router /servers/export [get]
 // @Security Bearer
 func (h HTTP) Export(c echo.Context) error {
@@ -253,8 +253,8 @@ func (h HTTP) Export(c echo.Context) error {
 // @Param id path int true "Server ID" description("Unique identifier of the server")
 // @Param date query string true "Date" description("The specific date to get the server uptime for, formatted as YYYY-MM-DD")
 // @Success 200 {number} float64 "Hours of uptime"
-// Failure 400 {object} echo.HTTPError "Invalid date format or server ID"
-// Failure 500 {object} echo.HTTPError "Internal server error occurred while retrieving uptime"
+// @Failure 400 {object} echo.HTTPError "Invalid date format or server ID"
+// @Failure 500 {object} echo.HTTPError "Internal server error occurred while retrieving uptime"
 // @Router /servers/{id}/uptime [get]
 // @Security Bearer
 func (h HTTP) GetServerUpTime(c echo.Context) error {
@@ -279,8 +279,8 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 // @Param start query string true "Start Date" description("The start date of the report range, formatted as YYYY-MM-DD")
 // @Param end query string true "End Date" description("The end date of the report range, formatted as YYYY-MM-DD")
 // @Success 200 {string} string "Report sent successfully"
-// Failure 400 {object} echo.HTTPError "Invalid date format or email"
-// Failure 500 {object} echo.HTTPError "Error occurred while sending the report"
+// @Failure 400 {object} echo.HTTPError "Invalid date format or email"
+// @Failure 500 {object} echo.HTTPError "Error occurred while sending the report"
 // @Router /servers/report [get]
 // @Security Bearer
 func (h HTTP) GetServersReport(c echo.Context) error {
