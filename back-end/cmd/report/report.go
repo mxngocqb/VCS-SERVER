@@ -18,23 +18,21 @@ func (s *Server) Report(ctx context.Context, in *pb.SendReportRequest) (*pb.Send
 	startTime, err := time.ParseInLocation(layout, in.Start, location)
 	if err != nil {
 		return &pb.SendReportResponse{Message: "Error parsing time: " + err.Error()}, nil
-	} else {
-		log.Println("Start time: ", startTime)
-	}
+	} 
 
 	endTime, err := time.ParseInLocation(layout, in.End, location)
 	if err != nil {
 		return &pb.SendReportResponse{Message: "Error parsing time: " + err.Error()}, nil
-	} else {
-		log.Println("End time: ", endTime)
-	}
+	} 
 
 	// Send report
-	res := report.SendReport(in.Mail, startTime, endTime)
+	err = report.SendReport(in.Mail, startTime, endTime)
 
-	if res != nil {
-		return &pb.SendReportResponse{Message: "Error sending report: " + res.Error()}, nil
+	if err != nil {
+		log.Printf("Error sending report: %v", err)
+		return &pb.SendReportResponse{Message: "Error sending report: " + err.Error()}, err
 	} else {
+		log.Printf("Report sent successfully")
 		return &pb.SendReportResponse{Message: "Report sent successfully"}, nil
 	}
 }

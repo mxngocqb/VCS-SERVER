@@ -323,19 +323,13 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 	layout := "2006-01-02"
 	location, err := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 timezone
 
-	startTime, err := time.ParseInLocation(layout, start, location)
-	if err != nil {
+	if _, err := time.ParseInLocation(layout, start, location); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid start date format")
-	} else{
-		log.Println("Start time: ", startTime)
 	}
 
-	endTime, err := time.ParseInLocation(layout, end, location)
-	if err != nil {
+	if _, err := time.ParseInLocation(layout, end, location); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid end date format")
-	} else{
-		log.Println("End time: ", endTime)
-	}
+	} 
 
 	mailArr := []string{mail}
 
@@ -351,13 +345,11 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 	
 	client := pb.NewReportServiceClient(conn)
 
-	doSendReport(client, mailArr, start, end)
-
-	// err = report.SendReport(mailArr, startTime, endTime)
+	err = doSendReport(client, mailArr, start, end)
 	
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
-	// }
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
+	}
 
 	return c.String(http.StatusOK, "Report sent successfully")
 }

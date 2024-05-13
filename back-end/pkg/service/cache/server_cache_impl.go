@@ -83,10 +83,7 @@ func (serverCache *serverCacheImpl) SetMultiRequest(key string, value []model.Se
 	if err != nil {
 		log.Printf("Error marshalling JSON:", err)
 		panic(err)
-	} else{
-		log.Printf("Marshalled JSON:", jsonData)
 	}
-
 	// Save to Redis
 	err = serverCache.client.Set(ctx, key, jsonData, serverCache.expires).Err()
 	if err != nil {

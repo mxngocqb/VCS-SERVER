@@ -19,7 +19,7 @@ type CreateRequest struct {
 // UpdateRequest defines the data needed to update a server.
 type UpdateRequest struct {
 	Name   string `json:"name" validate:"required"`
-	Status bool   `json:"status" validate:"required"`
+	Status bool   `json:"status"`
 	IP     string `json:"ip" validate:"required"`
 }
 
