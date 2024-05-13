@@ -2,10 +2,12 @@ package util
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"strconv"
+
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/xuri/excelize/v2"
-	"io"
-	"strconv"
 )
 
 type ParseErrors struct {
@@ -27,6 +29,8 @@ func ParseExcel(file io.Reader) ([]model.Server, error) {
 	sheets := f.GetSheetList()
 	if len(sheets) == 0 {
 		return nil, fmt.Errorf("no sheets found in the Excel file")
+	} else{
+		log.Printf("Found %d sheets in the Excel file", len(sheets))
 	}
 
 	// Selecting the first sheet as default or a specific sheet by name
@@ -35,6 +39,8 @@ func ParseExcel(file io.Reader) ([]model.Server, error) {
 	rows, err := f.GetRows(sheetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rows from sheet '%s': %v", sheetName, err)
+	} else{
+		log.Printf("Successfully read %d rows from sheet '%s'", len(rows), sheetName)
 	}
 
 	var servers []model.Server
@@ -66,6 +72,7 @@ func ParseExcel(file io.Reader) ([]model.Server, error) {
 			Status: status,
 			IP:     row[2],
 		})
+		log.Printf("Parsed server: %s, %t, %s", row[0], status, row[2])
 	}
 
 	if len(errors) > 0 {

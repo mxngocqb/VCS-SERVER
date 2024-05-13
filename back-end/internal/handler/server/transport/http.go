@@ -186,6 +186,7 @@ func (h HTTP) CreateMany(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to open file: "+err.Error())
 	}
+
 	defer src.Close()
 
 	servers, err := util.ParseExcel(src)
@@ -194,6 +195,7 @@ func (h HTTP) CreateMany(c echo.Context) error {
 	}
 
 	createdServers, successLines, failedLines, err := h.service.CreateMany(c, servers)
+	
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save servers: "+err.Error())
 	}

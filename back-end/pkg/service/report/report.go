@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -83,8 +84,8 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		Aggregations struct {
 			UniqueServers struct {
 				Buckets []struct {
-					// Key int `json:"key"`
-					Key string `json:"key"`
+					Key int `json:"key"`
+					// Key string `json:"key"`
 				} `json:"buckets"`
 			} `json:"unique_servers"`
 		} `json:"aggregations"`
@@ -118,7 +119,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
                     }
                 }
             ]
-        }`, /*strconv.Itoa(bucket.Key)*/ bucket.Key)
+        }`, strconv.Itoa(bucket.Key)/*bucket.Key*/ )
 		
 		lastStatusReq := esapi.SearchRequest{
 			Index: []string{"server_status_logs"},
@@ -127,7 +128,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 
 		lastStatusRes, err := lastStatusReq.Do(context.Background(), es.Client)
 		if err != nil {
-			log.Printf("Error fetching last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/ bucket.Key, err)
+			log.Printf("Error fetching last status for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
 			continue
 		}
 		defer lastStatusRes.Body.Close()
@@ -143,19 +144,19 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		}
 
 		if err := json.NewDecoder(lastStatusRes.Body).Decode(&lastStatusResp); err != nil {
-			log.Printf("Error decoding last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/ bucket.Key, err)
+			log.Printf("Error decoding last status for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
 			continue
 		}
 
 		lastStatus := lastStatusResp.Hits.Hits[0].Source.Status
-		lastStatusMap[/*strconv.Itoa(bucket.Key)*/ bucket.Key] = lastStatus
+		lastStatusMap[strconv.Itoa(bucket.Key)/*bucket.Key*/ ] = lastStatus
 		if lastStatus {
 			onlineServers++
 		}
 
-		uptime, err := es.CalculateServerUptime(/*strconv.Itoa(bucket.Key)*/ bucket.Key, now)
+		uptime, err := es.CalculateServerUptime(strconv.Itoa(bucket.Key)/*bucket.Key*/ , now)
 		if err != nil {
-			log.Printf("Error calculating uptime for server %s: %v", /*strconv.Itoa(bucket.Key)*/ bucket.Key, err)
+			log.Printf("Error calculating uptime for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
 			continue
 		}
 		totalUptime += uptime
