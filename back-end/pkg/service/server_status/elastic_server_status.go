@@ -58,6 +58,7 @@ func (es *ElasticService) IndexServer(server model.Server) error {
 		Refresh:    "true",
 	}
 
+
 	res, err := req.Do(context.Background(), es.Client)
 	if err != nil {
 		return err
@@ -146,6 +147,7 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
         },
         "sort": [{"timestamp": {"order": "asc"}}]
     }`, serverID, startOfDay.Format(time.RFC3339), endOfDay.Format(time.RFC3339))
+	
 
 	req := esapi.SearchRequest{
 		Index: []string{"server_status_logs"},

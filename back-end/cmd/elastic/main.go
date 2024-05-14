@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"log"
 )
 

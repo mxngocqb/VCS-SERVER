@@ -13,10 +13,9 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/xuri/excelize/v2"
-	// "golang.org/x/text/internal/number"
 	"gorm.io/gorm"
 
 	// gRPC framework for Go
@@ -134,11 +133,15 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 		createdServers = append(createdServers, server)
 		successLines = append(successLines, i+2)
 
+		err = s.elastic.IndexServer(server)
+		if err != nil {
+			log.Printf("Error indexing server %d: %v", server.ID, err)
+		}
 		// After successfully creating the server, log the status change
 		err = s.elastic.LogStatusChange(server, server.Status)
 		if err != nil {
 			// Handle logging error
-			fmt.Println("Error logging status change for server ID in Elasticsearch", server.ID)
+			log.Printf("Error logging status change for server ID in Elasticsearch", server.ID)
 		}
 	}
 

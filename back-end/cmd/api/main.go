@@ -24,7 +24,7 @@ func main() {
 	// load config
 	cfgPath := "./conf.yaml"
 	cfg, err := config.Load(cfgPath)
-	log.Printf("%d", cfg.REDIS.Expiration)
+	
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}

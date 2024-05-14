@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/robfig/cron/v3"
 	"gopkg.in/gomail.v2"
 )
@@ -197,7 +197,7 @@ func SendReport(email []string, start, end time.Time) error {
 			"<strong>Total Servers:</strong> %d",
 		avgUptime, online, offline, totalServers))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo ojkq")
+	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo  ")
 
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {

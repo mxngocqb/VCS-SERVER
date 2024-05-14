@@ -44,6 +44,9 @@ func main() {
 
 	// Drop all tables and recreate them.
 	err = db.Migrator().DropTable(&model.User{}, &model.Role{}, &model.Operation{}, &model.Resource{}, &model.RolePermissions{}, &model.Server{})
+	if err != nil {
+		panic("Failed to drop tables")
+	}
 
 	// Automatically migrate your schema.
 	err = db.AutoMigrate(&model.User{}, &model.Role{}, &model.Operation{}, &model.Resource{}, &model.RolePermissions{}, &model.Server{})
@@ -55,6 +58,11 @@ func main() {
 	// Seed the database with roles
 	if err := seedRoles(db); err != nil {
 		log.Fatalf("Failed to seed roles: %v", err)
+	}
+
+	// SEed the database with users
+	if err := seedUsers(db); err != nil {
+		log.Fatalf("Failed to seed users: %v", err)
 	}
 
 	fmt.Println("Database seeded successfully!")
@@ -78,4 +86,24 @@ func seedRoles(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+// seedUsers adds predefined users to the users table
+func seedUsers(db *gorm.DB) error {
+    // SQL statements for seeding users
+    queries := []string{
+        "INSERT INTO users (username, password) VALUES ('admin', '$2a$14$NcWnkwHlM0Vmu6DeWn0afu.Pc1HbPgghQpqOB/43Ah4IJeR/UXrEW');",
+        "INSERT INTO user_roles VALUES ('1','1');",
+    }
+
+    // Execute each query
+    for _, query := range queries {
+        result := db.Exec(query)
+        if result.Error != nil {
+            return fmt.Errorf("failed to insert user: %v", result.Error)
+        }
+        fmt.Printf("Inserted user with result: %v\n", result.RowsAffected)
+    }
+
+    return nil
 }

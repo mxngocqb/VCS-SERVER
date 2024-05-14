@@ -8,6 +8,10 @@ import (
 	"time"
 
 	"github.com/go-ping/ping"
+	// "github.com/joho/godotenv"
+	// "github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
+	// "github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	// service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 )
 
 type Server struct {
@@ -27,9 +31,27 @@ type ServersResponse struct {
 
 
 func main() {
+	// // Load environment variables
+	// _ = godotenv.Load()
+
+	// // load config
+	// cfgPath := "./conf.yaml"
+	// cfg, err := config.Load(cfgPath)
+	// if err != nil {
+	// 	log.Fatalf("Failed to load configuration: %v", err)
+	// }
+
+	// db, err := service.New(cfg)
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to database: %v", err)
+	// }
+
+	// repository := service.NewServerRepository(db.DB)
+	// elasticService := service.NewElasticsearch()
+
 	// Gửi yêu cầu GET đến API
 	url := "http://localhost:8090/api/servers?limit=1000&offset=0"
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTcxNTg3ODYzNX0.yLjMN8W6t6CP5Ghd3HHyebsNuhM4JR_OfgzH9iqUz6g" // Example JWT token
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTcxNTkxMTY1OH0.s3l626nOilzilRDfcsOS5tFdqc5oQqmqTUEgjrTNv9k" // Example JWT token
 	
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", "Bearer " + token)
@@ -83,34 +105,26 @@ func main() {
 	}
 }
 
+// ping function takes an IP address as input and returns an error if any occurs
+func pingHost(ip string) error {
+    pinger, err := ping.NewPinger(ip)
+    if err != nil {
+        return fmt.Errorf("error creating pinger: %v", err)
+    }
 
-func pingHost(ipAddr string) error {
-	// Create a new Pinger
-	pinger, err := ping.NewPinger(ipAddr)
-	if err != nil {
-		return err
-	}
+    // Set options for the pinger
+    pinger.Count = 3                // Number of packets to send
+    pinger.Interval = time.Second   // Time between each ping
+    pinger.Timeout = time.Second * 5 // Timeout for the entire ping operation
 
-	// Set options for the pinger
-	pinger.Count = 5 // Ping 5 times
-	pinger.Timeout = time.Second * 5
-	pinger.Interval = time.Second
-	pinger.SetPrivileged(true) // This may be required in some operating systems to send ICMP packets
+    // Define a callback to handle each received packet (optional)
+    pinger.OnRecv = func(pkt *ping.Packet) {}
 
-	// Variables to track successful pings
-	successfulPings := 0
+    // Run the ping
+    err = pinger.Run()
+    if err != nil {
+        return fmt.Errorf("error running pinger: %v", err)
+    }
 
-	// Start the ping loop
-	pinger.OnRecv = func(pkt *ping.Packet) {
-		successfulPings++
-	}
-
-	pinger.Run() // Blocks until finished
-
-	// Check if all pings failed
-	if successfulPings == 0 {
-		return fmt.Errorf("no successful pings to %s", ipAddr)
-	}
-
-	return nil
+    return nil
 }

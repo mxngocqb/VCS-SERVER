@@ -16,7 +16,7 @@ import (
 	custommiddleware "github.com/mxngocqb/VCS-SERVER/back-end/internal/middleware"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -53,7 +53,6 @@ func Start(cfg *config.Config) error {
 	userService := user.NewUserService(userRepository, rbacService)
 	authService := auth.NewAuthService(userRepository)
 	serverService := server.NewServerService(serverRepository, rbacService, elasticService, serverCache)
-	// serverService := server.NewServerService(serverRepository, rbacService, elasticService)
 
 	// Set up Echo Server
 	e := echo.New()

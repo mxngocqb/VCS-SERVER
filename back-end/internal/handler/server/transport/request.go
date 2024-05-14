@@ -9,20 +9,21 @@ type ViewRequest struct {
 	Order  string `json:"order"  validate:"omitempty,oneof=asc desc" query:"order"`
 }
 
-// D
+// Define the request struct of API create server
 type CreateRequest struct {
 	Name   string `json:"name" validate:"required"`
 	Status bool   `json:"status" validate:"required"`
 	IP     string `json:"ip" validate:"required"`
 }
-
-// 
+ 
+// Define the request struct of API update server
 type UpdateRequest struct {
 	Name   string `json:"name" validate:"required"`
 	Status bool   `json:"status"`
 	IP     string `json:"ip" validate:"required"`
 }
 
+// Define the request struct of API delete server
 type GetServersReportRequest struct {
 	Mail string `json:"mail" validate:"email"`
 }
