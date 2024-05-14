@@ -1,16 +1,35 @@
 package service
 
-// import (
-// 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
-// )
 
-// type Service interface {
-// 	Update(id string, server *model.Server) (*model.Server, error)
-// }
+type Service struct {	
+	repository *ServerRepository
+	elastic    *ElasticService
+}
 
-// // Update updates a server.
-// func Update(id string, server *model.Server) (*model.Server, error) {
-// 	updatedServer, err := serverRepository.Update(id, server)
+func NewServerService(repository *ServerRepository,  elastic *ElasticService, ) *Service {
+	return &Service{
+		repository: repository,
+		elastic:    elastic,
+	}
+}
 
-// 	return updatedServer, nil
-// }
+// Update updates a server.
+func (s *Service) Update(id string, status bool) (error) {
+	err := s.repository.Update(id, status)
+	if err != nil {
+		return err
+	}
+
+	// Retrieve updated server
+	updatedServer, err := s.repository.GetServerByID(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.elastic.LogStatusChange(*updatedServer, status)
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}

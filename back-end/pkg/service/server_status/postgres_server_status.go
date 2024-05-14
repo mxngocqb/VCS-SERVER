@@ -37,23 +37,15 @@ func New(config *config.Config) (*DB, error) {
 	return &DB{db}, err
 }
 
-// Update updates a server by id
-func (ss *ServerRepository) Update(id string, s *model.Server) error {
-	updateFields := make(map[string]interface{})
+// Update updates the status of a server by ID
+func (ss *ServerRepository) Update(id string, status bool) error {
+	return ss.DB.Model(&model.Server{}).Where("id = ?", id).Update("status", status).Error
+}
 
-	updateFields["status"] = s.Status
-	
-    if s.Name != "" {
-        updateFields["name"] = s.Name
-    }
 
-    if s.IP != "" {
-        updateFields["ip"] = s.IP
-    }
-
-    if len(updateFields) == 0 {
-        return nil // No fields to update
-    }
-
-	return ss.DB.Model(&model.Server{}).Where("id = ?", id).Updates(updateFields).Error
+// GetServerByID retrieves a server by ID.
+func (ss *ServerRepository) GetServerByID(id string) (*model.Server, error) {
+	var server model.Server
+	err := ss.DB.First(&server, id).Error
+	return &server, err
 }

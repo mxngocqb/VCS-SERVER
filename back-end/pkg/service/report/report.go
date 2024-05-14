@@ -197,7 +197,7 @@ func SendReport(email []string, start, end time.Time) error {
 			"<strong>Total Servers:</strong> %d",
 		avgUptime, online, offline, totalServers))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo  ")
+	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo ojkq")
 
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
