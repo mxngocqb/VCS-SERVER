@@ -29,6 +29,9 @@ type ServersResponse struct {
 }
 
 func main() {
+	url := "http://localhost:8090/api/servers?limit=1000&offset=0"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTcxNTg3ODYzNX0.yLjMN8W6t6CP5Ghd3HHyebsNuhM4JR_OfgzH9iqUz6g" // Example JWT token
+
 	// Load environment variables
 	_ = godotenv.Load()
 
@@ -46,84 +49,99 @@ func main() {
 
 	repository := service.NewServerRepository(db.DB)
 	elasticService := service.NewElasticsearch()
-	service.NewServerService(repository, elasticService)
+	serverService := service.NewServerService(repository, elasticService)
 
-	// Gửi yêu cầu GET đến API
-	url := "http://localhost:8090/api/servers?limit=1000&offset=0"
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTcxNTkxMTY1OH0.s3l626nOilzilRDfcsOS5tFdqc5oQqmqTUEgjrTNv9k" // Example JWT token
-
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	client := http.Client{}
-	response, err := client.Do(req)
-
+	// fetch data from the API
+	res, err := fetchServers(url, token)
 	if err != nil {
-		log.Fatal("Lỗi khi gửi yêu cầu:", err)
-	}
-	defer response.Body.Close()
-
-	// Đảm bảo rằng mã trạng thái là 200 OK
-	if response.StatusCode != http.StatusOK {
-		log.Fatalf("Lỗi: mã trạng thái không phải là 200 OK. Mã: %d", response.StatusCode)
-	}
-
-	// Phân tích dữ liệu JSON từ phản hồi
-	var serversResponse ServersResponse
-	if err := json.NewDecoder(response.Body).Decode(&serversResponse); err != nil {
-		log.Fatal("Lỗi khi phân tích dữ liệu JSON:", err)
-	}
-
-	// Trích xuất mảng IP từ dữ liệu
-	var ips []string
-	for _, server := range serversResponse.Data {
-		ips = append(ips, server.IP)
+		log.Fatalf("Error: %s", err)
 	}
 
 	resultCh := make(chan []string)
 
-	// Loop through each record in the input CSV file
-	for _, record := range ips {
-		go func(record string) {
-			ip := record
+	// Loop through each server in the response data
+	for _, server := range res.Data {
+		go func(server Server) {
+			ip := server.IP
+			id := fmt.Sprintf("%d", server.ID)
 
-			// Ping the ip address
-			err := pingHost(ip)
+			// Ping the IP address
+			err := pingHost(ip, 10)
 			status := "false"
 			if err == nil {
 				status = "true"
 			}
-			resultCh <- []string{ip, status}
-		}(record)
+
+			resultCh <- []string{id, status, ip}
+		}(server)
 	}
 
 	// Collect the results from the channel
-	for range ips {
+	for range res.Data {
 		result := <-resultCh
-		fmt.Printf("IP: %s, Status: %s\n", result[0], result[1])
+		fmt.Printf("ID: %s, Status: %s, IP: %s\n", result[0], result[1], result[2]) 
+		if result[1] == "true" {
+			serverService.Update(result[0], true)
+		} else {
+			serverService.Update(result[0], false)
+		}
 	}
 }
 
 // ping function takes an IP address as input and returns an error if any occurs
-func pingHost(ip string) error {
-	pinger, err := ping.NewPinger(ip)
+func pingHost(host string, count int) error {
+	pinger, err := ping.NewPinger(host)
 	if err != nil {
-		return fmt.Errorf("error creating pinger: %v", err)
+		return err
 	}
 
-	// Set options for the pinger
-	pinger.Count = 3                 // Number of packets to send
-	pinger.Interval = time.Second    // Time between each ping
-	pinger.Timeout = time.Second * 5 // Timeout for the entire ping operation
+	pinger.Count = count
+	pinger.Timeout = time.Second * time.Duration(count)
+	pinger.SetPrivileged(true)
 
-	// Define a callback to handle each received packet (optional)
-	pinger.OnRecv = func(pkt *ping.Packet) {}
+	pinger.OnRecv = func(pkt *ping.Packet) {
+	}
+	pinger.OnFinish = func(stats *ping.Statistics) {
 
-	// Run the ping
+	}
+
 	err = pinger.Run()
 	if err != nil {
-		return fmt.Errorf("error running pinger: %v", err)
+		return err
+	}
+
+	stats := pinger.Statistics()
+	success := stats.PacketsRecv > 0
+	if !success {
+		return fmt.Errorf("no packets received")
 	}
 
 	return nil
+}
+
+// fetchServers function takes a URL and a JWT token as input and returns a ServersResponse and an error if any occurs
+func fetchServers(url, token string) (*ServersResponse, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
+	}
+
+	var serversResponse ServersResponse
+	if err := json.NewDecoder(response.Body).Decode(&serversResponse); err != nil {
+		return nil, err
+	}
+
+	return &serversResponse, nil
 }
