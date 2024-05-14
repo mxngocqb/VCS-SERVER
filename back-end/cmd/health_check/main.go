@@ -98,12 +98,8 @@ func pingHost(host string, count int) error {
 	pinger.Count = count
 	pinger.Timeout = time.Second * time.Duration(count)
 	pinger.SetPrivileged(true)
-
-	pinger.OnRecv = func(pkt *ping.Packet) {
-	}
-	pinger.OnFinish = func(stats *ping.Statistics) {
-
-	}
+	pinger.OnRecv = func(pkt *ping.Packet) {}
+	pinger.OnFinish = func(stats *ping.Statistics) {}
 
 	err = pinger.Run()
 	if err != nil {
