@@ -280,13 +280,13 @@ func (s *Service) GetServersFiltered(c echo.Context, startCreated, endCreated, s
 	}
 
 	// Save Excel file to disk
-	filePath := "servers.xlsx"
+	filePath := "export.xlsx"
 	if err := f.SaveAs(filePath); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save Excel file")
 	}
 
 	// Serve the file
-	return c.Attachment(filePath, "servers.xlsx")
+	return c.Attachment(filePath, "export.xlsx")
 }
 
 // GetServerUptime calculates the uptime for a server for the entire specified day.
