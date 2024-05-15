@@ -22,7 +22,7 @@ func pingHost(host string, count int) error {
 }
 
 // fetchServers function takes a URL and a JWT token as input and returns a ServersResponse and an error if any occurs
-func fetchServers(url, token string) (*ServersResponse, error) {
+func fetchServers(url, token string) (*service.ServersResponse, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func fetchServers(url, token string) (*ServersResponse, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
 	}
 
-	var serversResponse ServersResponse
+	var serversResponse service.ServersResponse
 	if err := json.NewDecoder(response.Body).Decode(&serversResponse); err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func fetchAndPingServers(url, token string, serverService *service.Service) {
 	resultCh := make(chan []string)
 
 	for _, server := range res.Data {
-		go func(server Server) {
+		go func(server service.Server) {
 			ip := server.IP
 			id := fmt.Sprintf("%d", server.ID)
 
@@ -82,4 +82,33 @@ func fetchAndPingServers(url, token string, serverService *service.Service) {
 		}
 	}
 }
+// StartPing function takes a serverService as input and starts the pingServer function
+func pingServer(serverMap map[int]service.Server, serverService *service.Service){
 
+	resultCh := make(chan []string)
+
+	for _, server := range serverMap{
+		go func(server service.Server) {
+			ip := server.IP
+			id := fmt.Sprintf("%d", server.ID)
+
+			err := pingHost(ip, 50)
+			status := "false"
+			if err == nil {
+				status = "true"
+			}
+
+			resultCh <- []string{id, status, ip}
+		}(server)
+	}
+
+	for range serverMap{
+		result := <-resultCh
+		log.Printf("ID: %s, Server %s is up: %s\n", result[0], result[2], result[1])
+		if result[1] == "true" {
+			serverService.Update(result[0], true)
+		} else {
+			serverService.Update(result[0], false)
+		}
+	}
+}

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -27,7 +28,7 @@ func NewConsumerSevice(config *config.Config) *ConsumerService {
 	return &ConsumerService{consumer}
 }
 
-func(cs *ConsumerService)ConsumerStart(sigchan chan os.Signal) {
+func(cs *ConsumerService)ConsumerStart(servers *map[int]Server, sigchan chan os.Signal) {
     // Create a new partition consumer for the given topic
     partitionConsumer, err := cs.consumer.ConsumePartition("test-topic3", 0, sarama.OffsetNewest)
     if err != nil {
@@ -47,7 +48,14 @@ func(cs *ConsumerService)ConsumerStart(sigchan chan os.Signal) {
             log.Println("Received signal, shutting down consumer...")
             return
         case msg := <-partitionConsumer.Messages():
-            log.Printf("Received message: key='%s' value='%s'\n", string(msg.Key), string(msg.Value))
+            // Decode the Kafka message into the Server struct
+            var server Server
+            if err := json.Unmarshal(msg.Value, &server); err != nil {
+                log.Printf("Error decoding message: %v\n", err)
+                continue // Skip to the next message
+            }
+            (*servers)[server.ID] = server
+            log.Printf("Received message: %v\n", (*servers)[server.ID].IP)
         case err := <-partitionConsumer.Errors():
             log.Printf("Error consuming message: %v\n", err)
         }

@@ -25,11 +25,11 @@ func Config(cfg *config.Config) (*service.Service, *service.ConsumerService, err
 }
 
 // Start starts the cron job.
-func Start(url, token string, serverService *service.Service){
+func StartPing(serverMap map[int]service.Server, serverService *service.Service){
 	c := cron.New()
 
-	_, err := c.AddFunc("@every 5m", func() {
-		fetchAndPingServers(url, token, serverService)
+	_, err := c.AddFunc("@every 10s", func() {
+		pingServer(serverMap, serverService)
 	})
 
 	if err != nil {

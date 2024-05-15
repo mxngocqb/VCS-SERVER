@@ -1,4 +1,4 @@
-package main
+package service
 
 type Server struct {
 	ID        int    `json:"ID"`

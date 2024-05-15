@@ -8,12 +8,10 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 )
 
 func main() {
-	url := "http://localhost:8090/api/servers?limit=1000&offset=0"
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTcxNTg3ODYzNX0.yLjMN8W6t6CP5Ghd3HHyebsNuhM4JR_OfgzH9iqUz6g" // Example JWT token
-
 	// Load environment variables
 	_ = godotenv.Load()
 
@@ -34,10 +32,11 @@ func main() {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 	// Start the consumer
-	go consumerService.ConsumerStart(sigchan)
+	serverMap := make(map[int]service.Server)
+	go consumerService.ConsumerStart(&serverMap, sigchan)
 	log.Println("Consumer started, waiting for messages...")
 	// Start the cron job
-	Start(url, token, serverService)
+	StartPing(serverMap, serverService)
     // Keep the main program running until a signal is received
     <-sigchan
 
