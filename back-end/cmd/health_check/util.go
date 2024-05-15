@@ -83,7 +83,7 @@ func fetchAndPingServers(url, token string, serverService *service.Service) {
 	}
 }
 // StartPing function takes a serverService as input and starts the pingServer function
-func pingServer(serverMap map[int]service.Server, serverService *service.Service){
+func pingServer(serverMap map[uint]service.Server, serverService *service.Service){
 
 	resultCh := make(chan []string)
 

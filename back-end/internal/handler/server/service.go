@@ -40,14 +40,17 @@ type Service struct {
 	rbac       *handler.RbacService
 	elastic    *service.ElasticService
 	cache      cache.ServerCache
+	producer  *service.ProducerService
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache) *Service {
+func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache, 
+	producer  *service.ProducerService) *Service {
 	return &Service{
 		repository: repository,
 		rbac:       rbac,
 		elastic:    elastic,
 		cache:      sc,
+		producer: 	producer,
 	}
 }
 
@@ -108,6 +111,8 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 		return &model.Server{}, err
 	}
 
+	s.producer.SendServer(server.ID, *server)
+
 	// Cache the server
 	s.cache.Set(strconv.Itoa(int(server.ID)), server)
 
@@ -139,6 +144,7 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 		}
 		// After successfully creating the server, log the status change
 		err = s.elastic.LogStatusChange(server, server.Status)
+		s.producer.SendServer(server.ID, server)
 		if err != nil {
 			// Handle logging error
 			log.Printf("Error logging status change for server ID in Elasticsearch", server.ID)
@@ -186,6 +192,7 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 	}
 
 	// Cache the server
+	s.producer.SendServer(server.ID, *server)
 	s.cache.Set(strconv.Itoa(int(server.ID)), server)
 
 	return updatedServer, nil
@@ -232,10 +239,9 @@ func (s *Service) Delete(c echo.Context, id string) error {
 	if err != nil {
 		return err
 	}
-
 	// Cache the server
 	s.cache.Delete(strconv.Itoa(int(server.ID)))
-
+	s.producer.DropServer(server.ID)
 	return nil
 }
 

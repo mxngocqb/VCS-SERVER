@@ -1,7 +1,7 @@
 package service
 
 type Server struct {
-	ID        int    `json:"ID"`
+	ID        uint    `json:"ID"`
 	CreatedAt string `json:"CreatedAt"`
 	UpdatedAt string `json:"UpdatedAt"`
 	DeletedAt string `json:"DeletedAt"`

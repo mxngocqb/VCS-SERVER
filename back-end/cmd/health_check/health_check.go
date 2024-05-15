@@ -17,7 +17,6 @@ func Config(cfg *config.Config) (*service.Service, *service.ConsumerService, err
 	repository := service.NewServerRepository(db.DB)
 	elasticService := service.NewElasticsearch()
 	serverService := service.NewServerService(repository, elasticService)
-
 	consumerService := service.NewConsumerSevice(cfg)
 	
 
@@ -25,10 +24,10 @@ func Config(cfg *config.Config) (*service.Service, *service.ConsumerService, err
 }
 
 // Start starts the cron job.
-func StartPing(serverMap map[int]service.Server, serverService *service.Service){
+func StartPing(serverMap map[uint]service.Server, serverService *service.Service){
 	c := cron.New()
 
-	_, err := c.AddFunc("@every 10s", func() {
+	_, err := c.AddFunc("@every 5m", func() {
 		pingServer(serverMap, serverService)
 	})
 

@@ -32,7 +32,7 @@ func main() {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 	// Start the consumer
-	serverMap := make(map[int]service.Server)
+	serverMap := make(map[uint]service.Server)
 	go consumerService.ConsumerStart(&serverMap, sigchan)
 	log.Println("Consumer started, waiting for messages...")
 	// Start the cron job

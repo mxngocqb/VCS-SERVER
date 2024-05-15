@@ -51,3 +51,16 @@ func (ss *ServerRepository) GetServerByID(id string) (*model.Server, error) {
 	err := ss.DB.First(&server, id).Error
 	return &server, err
 }
+
+// GetServersFiltered retrieves servers with pagination and a status filter
+func (ss *ServerRepository) GetTotalServer() ([]model.Server, error) {
+	var servers []model.Server
+	query := ss.DB.Model(&model.Server{})
+
+	// Execute query
+	if err := query.Find(&servers).Error; err != nil {
+		return nil, err
+	}
+	
+	return servers, nil
+}

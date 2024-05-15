@@ -34,3 +34,6 @@ func (s *Service) Update(id string, status bool) (error) {
 	return nil
 }
 
+func (s *Service) GetTotalServer() ([]Server, error) {
+	return nil, nil
+}
