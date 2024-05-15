@@ -24,7 +24,6 @@ func NewServerRepository(db *gorm.DB) *ServerRepository {
 	return &ServerRepository{DB: db}
 }
 
-
 func New(config *config.Config) (*DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
 		config.DB.Host, config.DB.User, config.DB.Password, config.DB.Name, config.DB.Port)

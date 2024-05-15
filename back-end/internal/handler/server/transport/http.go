@@ -80,6 +80,7 @@ func (h HTTP) View(c echo.Context) error {
 // @Success 201 {object} model.ServerSwag
 // @Failure 400 {object} echo.HTTPError "Invalid server data provided"
 // @Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
 // @Router /servers [post]
 // @Security Bearer
 func (h HTTP) Create(c echo.Context) error {
@@ -98,7 +99,7 @@ func (h HTTP) Create(c echo.Context) error {
 	// Create new server in the database
 	createdServer, err := h.service.Create(c, newServer)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, createdServer)
@@ -116,6 +117,7 @@ func (h HTTP) Create(c echo.Context) error {
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid update data"
 // @Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
 // @Router /servers/{id} [put]
 // @Security Bearer
 func (h HTTP) Update(c echo.Context) error {
@@ -138,7 +140,7 @@ func (h HTTP) Update(c echo.Context) error {
 	// Update server in the database
 	u, err := h.service.Update(c, id, updatedServer)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusOK, u)
@@ -154,6 +156,7 @@ func (h HTTP) Update(c echo.Context) error {
 // @Success 204
 // @Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to delete server"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
 // @Router /servers/{id} [delete]
 // @Security Bearer
 func (h HTTP) Delete(c echo.Context) error {
@@ -161,7 +164,7 @@ func (h HTTP) Delete(c echo.Context) error {
 	id := c.Param("id")
 	err := h.service.Delete(c, id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -177,6 +180,7 @@ func (h HTTP) Delete(c echo.Context) error {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
 // @Router /servers/import [post]
 // @Security Bearer
 func (h HTTP) CreateMany(c echo.Context) error {
@@ -200,7 +204,7 @@ func (h HTTP) CreateMany(c echo.Context) error {
 	createdServers, successLines, failedLines, err := h.service.CreateMany(c, servers)
 	
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save servers: "+err.Error())
+		return err
 	}
 
 	response := echo.Map{
@@ -278,26 +282,23 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param mail body string true "Recipient Email" description("Email address to send the report to")
 // @Param start query string true "Start Date" description("The start date of the report range, formatted as YYYY-MM-DD")
 // @Param end query string true "End Date" description("The end date of the report range, formatted as YYYY-MM-DD")
+// @Param mail query GetServersReportRequest true "Recipient Email" description("Email address to send the report to")
 // @Success 200 {string} string "Report sent successfully"
 // @Failure 400 {object} echo.HTTPError "Invalid date format or email"
 // @Failure 500 {object} echo.HTTPError "Error occurred while sending the report"
 // @Router /servers/report [get]
 // @Security Bearer
 func (h HTTP) GetServersReport(c echo.Context) error {
-	r := new(GetServersReportRequest)
-	if err := c.Bind(r); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
 
 	start := c.QueryParam("start")
 	end := c.QueryParam("end")
+	mail := c.QueryParam("mail")
 
-	err := h.service.GetServerReport(c, r.Mail, start, end)
+	err := h.service.GetServerReport(c, mail, start, end)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return nil

@@ -10,6 +10,7 @@ type Config struct {
 	DB    *Database `yaml:"database,omitempty"`
 	JWT   *JWT      `yaml:"JWT,omitempty"`
 	REDIS *Redis    `yaml:"redis,omitempty"`
+	KAFKA *Kafka    `yaml:"kafka,omitempty"`
 }
 
 // Load reads the config file and returns a Config struct
@@ -44,4 +45,8 @@ type Redis struct {
 	Addr   string `yaml:"host,omitempty"`
 	Pass   string `yaml:"password,omitempty"`
 	Expire int    `yaml:"expiration,omitempty"`
+}
+
+type Kafka struct {
+	Brokers []string `yaml:"brokers,omitempty"`
 }

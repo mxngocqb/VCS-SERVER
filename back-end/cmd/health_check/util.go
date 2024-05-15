@@ -82,3 +82,4 @@ func fetchAndPingServers(url, token string, serverService *service.Service) {
 		}
 	}
 }
+

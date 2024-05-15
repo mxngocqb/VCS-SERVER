@@ -43,13 +43,13 @@ func main() {
 	}
 
 	// Drop all tables and recreate them.
-	err = db.Migrator().DropTable(&model.User{}, &model.Role{}, &model.Operation{}, &model.Resource{}, &model.RolePermissions{}, &model.Server{})
+	err = db.Migrator().DropTable(&model.Role{},&model.User{},  &model.Server{})
 	if err != nil {
 		panic("Failed to drop tables")
 	}
 
 	// Automatically migrate your schema.
-	err = db.AutoMigrate(&model.User{}, &model.Role{}, &model.Operation{}, &model.Resource{}, &model.RolePermissions{}, &model.Server{})
+	err = db.AutoMigrate(&model.User{}, &model.Role{}, &model.Server{})
 	if err != nil {
 		panic("Failed to migrate database")
 	}

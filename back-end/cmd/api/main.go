@@ -8,10 +8,10 @@ import (
 	"log"
 )
 
-// @title Your API Title
+// @title Viettel Cyber Security - Server Management System
 // @version 1.0
-// @description This is a sample API
-// @host localhost:8090
+// @description This is the API documentation for the Viettel Cyber Security - Server Management System.
+// @host localhost:8090 
 // @BasePath /api
 // @schemes http https
 // @securityDefinitions.apikey Bearer

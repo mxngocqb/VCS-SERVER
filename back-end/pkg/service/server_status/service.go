@@ -6,7 +6,7 @@ type Service struct {
 	elastic    *ElasticService
 }
 
-func NewServerService(repository *ServerRepository,  elastic *ElasticService, ) *Service {
+func NewServerService(repository *ServerRepository,  elastic *ElasticService) *Service {
 	return &Service{
 		repository: repository,
 		elastic:    elastic,
@@ -33,3 +33,4 @@ func (s *Service) Update(id string, status bool) (error) {
 	
 	return nil
 }
+

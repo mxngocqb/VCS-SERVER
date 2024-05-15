@@ -6,6 +6,7 @@ import (
 	customjwt "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 )
 
+// RoleMiddleware is a middleware that extracts the user's role from the JWT token
 func RoleMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

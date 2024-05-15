@@ -14,3 +14,7 @@ redis:
     host: localhost:6379
     expiration: 60
     password: 
+
+kafka:
+    brokers: 
+        - localhost:9092

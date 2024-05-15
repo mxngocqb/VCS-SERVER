@@ -105,8 +105,9 @@ definitions:
 host: localhost:8090
 info:
   contact: {}
-  description: This is a sample API
-  title: Your API Title
+  description: This is the API documentation for the Viettel Cyber Security - Server
+    Management System.
+  title: Viettel Cyber Security - Server Management System
   version: "1.0"
 paths:
   /login:
@@ -215,6 +216,10 @@ paths:
           description: Invalid server data provided
           schema:
             $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - User does not have permission to delete server
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Failed to create server due to server error
           schema:
@@ -240,6 +245,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "403":
+          description: Forbidden - User does not have permission to delete server
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "404":
           description: Not found - Server not found
           schema:
@@ -278,6 +287,10 @@ paths:
             $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
         "400":
           description: Bad request - Invalid update data
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - User does not have permission to delete server
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "404":
@@ -401,6 +414,10 @@ paths:
           description: Bad request - Invalid or corrupt file
           schema:
             $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - User does not have permission to delete server
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal server error - Failed to parse or save servers
           schema:
@@ -417,12 +434,6 @@ paths:
       description: Retrieves a report of server statuses for a given date range and
         sends it to the specified email address.
       parameters:
-      - description: Recipient Email
-        in: body
-        name: mail
-        required: true
-        schema:
-          type: string
       - description: Start Date
         in: query
         name: start
@@ -432,6 +443,9 @@ paths:
         in: query
         name: end
         required: true
+        type: string
+      - in: query
+        name: mail
         type: string
       produces:
       - application/json

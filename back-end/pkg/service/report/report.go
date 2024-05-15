@@ -18,7 +18,8 @@ import (
 func ScheduleDailyReport() {
 	c := cron.New()
 	// Send daily report at 8:00 AM
-	_, err := c.AddFunc("0 8 * * *", func() {
+	// _, err := c.AddFunc("0 8 * * *", func() {
+	_, err := c.AddFunc("@every 30s", func() {
 		now := time.Now()
 		loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
 		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)

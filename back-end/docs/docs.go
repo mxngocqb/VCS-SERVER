@@ -183,6 +183,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden - User does not have permission to delete server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
                     "500": {
                         "description": "Failed to create server due to server error",
                         "schema": {
@@ -308,6 +314,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden - User does not have permission to delete server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
                     "500": {
                         "description": "Internal server error - Failed to parse or save servers",
                         "schema": {
@@ -337,15 +349,6 @@ const docTemplate = `{
                 "summary": "Generate server status report",
                 "parameters": [
                     {
-                        "description": "Recipient Email",
-                        "name": "mail",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "type": "string",
                         "description": "Start Date",
                         "name": "start",
@@ -358,6 +361,11 @@ const docTemplate = `{
                         "name": "end",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "mail",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -431,6 +439,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden - User does not have permission to delete server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
                     "404": {
                         "description": "Not found - Server not found",
                         "schema": {
@@ -474,6 +488,12 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "403": {
+                        "description": "Forbidden - User does not have permission to delete server",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
                     },
                     "404": {
                         "description": "Not found - Server not found",
@@ -946,8 +966,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8090",
 	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
-	Title:            "Your API Title",
-	Description:      "This is a sample API",
+	Title:            "Viettel Cyber Security - Server Management System",
+	Description:      "This is the API documentation for the Viettel Cyber Security - Server Management System.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
