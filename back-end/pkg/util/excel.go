@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/xuri/excelize/v2"
@@ -79,4 +80,35 @@ func ParseExcel(file io.Reader) ([]model.Server, error) {
 		return servers, &ParseErrors{Errors: errors}
 	}
 	return servers, nil
+}
+
+
+// createExcelWithServers creates an Excel file with server data
+func CreateExcelFile(servers []model.Server) (*excelize.File, error) {
+	f := excelize.NewFile()
+	index, err := f.NewSheet("Servers")
+	if err != nil {
+		return nil, err
+	}
+	f.SetActiveSheet(index)
+
+	// Create header
+	headers := []string{"ID", "Name", "Status", "IP", "Created At", "Updated At"}
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue("Servers", cell, header)
+	}
+
+	// Fill data
+	for i, server := range servers {
+		row := i + 2 // Starting from the second row
+		f.SetCellValue("Servers", "A"+strconv.Itoa(row), server.ID)
+		f.SetCellValue("Servers", "B"+strconv.Itoa(row), server.Name)
+		f.SetCellValue("Servers", "C"+strconv.Itoa(row), server.Status)
+		f.SetCellValue("Servers", "D"+strconv.Itoa(row), server.IP)
+		f.SetCellValue("Servers", "E"+strconv.Itoa(row), server.CreatedAt.Format(time.RFC3339))
+		f.SetCellValue("Servers", "F"+strconv.Itoa(row), server.UpdatedAt.Format(time.RFC3339))
+	}
+
+	return f, nil
 }

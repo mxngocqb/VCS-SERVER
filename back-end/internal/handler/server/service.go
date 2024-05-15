@@ -15,11 +15,11 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
-	"github.com/xuri/excelize/v2"
+	util "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
+	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	"gorm.io/gorm"
 
 	// gRPC framework for Go
-	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -273,29 +273,10 @@ func (s *Service) GetServersFiltered(c echo.Context, startCreated, endCreated, s
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error fetching servers: %v", err))
 	}
 
-	f := excelize.NewFile()
-	index, err := f.NewSheet("Servers")
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create Excel sheet")
-	}
-	f.SetActiveSheet(index)
-
-	// Create header
-	headers := []string{"ID", "Name", "Status", "IP", "Created At", "Updated At"}
-	for i, header := range headers {
-		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
-		f.SetCellValue("Servers", cell, header)
-	}
-
-	// Fill data
-	for i, server := range servers {
-		row := i + 2 // Starting from the second row
-		f.SetCellValue("Servers", "A"+strconv.Itoa(row), server.ID)
-		f.SetCellValue("Servers", "B"+strconv.Itoa(row), server.Name)
-		f.SetCellValue("Servers", "C"+strconv.Itoa(row), server.Status)
-		f.SetCellValue("Servers", "D"+strconv.Itoa(row), server.IP)
-		f.SetCellValue("Servers", "E"+strconv.Itoa(row), server.CreatedAt.Format(time.RFC3339))
-		f.SetCellValue("Servers", "F"+strconv.Itoa(row), server.UpdatedAt.Format(time.RFC3339))
+	f, err2 := util.CreateExcelFile(servers)
+	
+	if err2 != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error creating Excel file: %v", err2))
 	}
 
 	// Save Excel file to disk
