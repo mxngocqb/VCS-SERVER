@@ -7,6 +7,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 )
 
 type ProducerService struct {
@@ -30,7 +31,7 @@ func NewProducerService(config *config.Config) *ProducerService {
 }
 
 func (ps *ProducerService) SendServer(id uint,server model.Server) {
-	serverSend := Server{
+	serverSend := service.Server{
 		ID: id,
 		IP: server.IP,
 		Status: server.Status,

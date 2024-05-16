@@ -7,6 +7,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 )
 
 type ConsumerService struct {
@@ -28,7 +29,7 @@ func NewConsumerSevice(config *config.Config) *ConsumerService {
 	return &ConsumerService{consumer}
 }
 
-func(cs *ConsumerService)ConsumerStart(servers *map[uint]Server, sigchan chan os.Signal) {
+func(cs *ConsumerService)ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
     // Create a new partition consumer for the given topic
     partitionConsumer, err := cs.consumer.ConsumePartition("Server", 0, sarama.OffsetNewest)
     if err != nil {
@@ -53,7 +54,7 @@ func(cs *ConsumerService)ConsumerStart(servers *map[uint]Server, sigchan chan os
                 continue
             }
 
-            var server Server
+            var server service.Server
             if err := json.Unmarshal(msg.Value, &server); err != nil {
                 log.Printf("Error decoding message: %v\n", err)
                 continue // Skip to the next message
