@@ -205,6 +205,90 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 	return totalUptime, nil
 }
 
+// CalculateServerUptime calculates the total uptime for a server on a given day, accounting for timezone.
+func (es *ElasticService) CalculateServerUptimeFromStartToEnd(serverID string, startDate, endDate time.Time) (time.Duration, error) {
+	var totalUptime time.Duration
+
+	// Assume the server timestamp is in GMT+7
+	loc, _ := time.LoadLocation("Asia/Bangkok") // Load the GMT+7 location
+
+	// Define the start and end of the day in the server's timezone
+	startOfDay := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, loc)
+	endOfDay :=  time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, loc)
+	now := time.Now().In(loc)
+
+	// Elasticsearch query
+	query := fmt.Sprintf(`
+    {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"server_id": %s}},
+                    {"range": {"timestamp": {"gte": "%s", "lte": "%s"}}}
+                ]
+            }
+        },
+        "sort": [{"timestamp": {"order": "asc"}}]
+    }`, serverID, startOfDay.Format(time.RFC3339), endOfDay.Format(time.RFC3339))
+
+	req := esapi.SearchRequest{
+		Index: []string{"server_status_logs"},
+		Body:  strings.NewReader(query),
+	}
+
+	res, err := req.Do(context.Background(), es.Client)
+	if err != nil {
+		return 0, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return 0, fmt.Errorf("error searching logs for server ID %s: %s", serverID, res.String())
+	}
+
+	// Parse the response to calculate total uptime
+	var r struct {
+		Hits struct {
+			Hits []struct {
+				Source struct {
+					Timestamp time.Time `json:"timestamp"`
+					Status    bool      `json:"status"`
+				} `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+		return 0, fmt.Errorf("error parsing response: %s", err)
+	}
+
+	// Track the last "on" time; if the server never turns "off", it's on till the end of the day
+	var lastOnTime *time.Time
+
+	for _, hit := range r.Hits.Hits {
+		if hit.Source.Status {
+			// Server turned "on"
+			if lastOnTime != nil {
+				totalUptime += hit.Source.Timestamp.Sub(*lastOnTime)
+			}
+			lastOnTime = &hit.Source.Timestamp
+		} else if lastOnTime != nil {
+			// Server turned "off"
+			totalUptime += hit.Source.Timestamp.Sub(*lastOnTime)
+			lastOnTime = nil // Reset lastOnTime after calculating uptime
+		}
+	}
+
+	// If the last status was "on" and there was no "off" event, count uptime till end of the day
+	if lastOnTime != nil && endOfDay.Before(now) {
+		totalUptime += endOfDay.Sub(*lastOnTime)
+	} else if lastOnTime != nil && endOfDay.After(now) {
+		totalUptime += now.Sub(*lastOnTime)
+	}
+
+	return totalUptime, nil
+}
+
 // CreateStatusLogIndex creates an index for server documents in Elasticsearch.
 func (es *ElasticService) CreateStatusLogIndex() error {
 	// Check if the index already exists

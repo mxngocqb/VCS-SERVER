@@ -1,0 +1,8 @@
+2024/05/17 00:25:27 [32m/mnt/e/VCS-SERVER/back-end/internal/repository/server.go:42
+[0m[33m[31.225ms] [34;1m[rows:10][0m SELECT * FROM "servers" WHERE "servers"."deleted_at" IS NULL ORDER BY created_at desc LIMIT 10
+2024/05/17 00:25:27 [32m/mnt/e/VCS-SERVER/back-end/internal/repository/server.go:48
+[0m[33m[7.154ms] [34;1m[rows:1][0m SELECT count(*) FROM "servers" WHERE "servers"."deleted_at" IS NULL LIMIT 10
+2024/05/17 00:25:50 [32m/mnt/e/VCS-SERVER/back-end/internal/repository/server.go:42
+[0m[33m[3.625ms] [34;1m[rows:30][0m SELECT * FROM "servers" WHERE "servers"."deleted_at" IS NULL ORDER BY created_at desc LIMIT 1000
+2024/05/17 00:25:50 [32m/mnt/e/VCS-SERVER/back-end/internal/repository/server.go:48
+[0m[33m[1.427ms] [34;1m[rows:1][0m SELECT count(*) FROM "servers" WHERE "servers"."deleted_at" IS NULL LIMIT 1000

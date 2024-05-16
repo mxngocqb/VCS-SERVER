@@ -18,11 +18,11 @@ func ScheduleDailyReport() {
 	c := cron.New()
 	// Send daily report at 8:00 AM
 	// _, err := c.AddFunc("0 8 * * *", func() {
-	_, err := c.AddFunc("@every 10m", func() {	
+	_, err := c.AddFunc("@every 10m", func() {
 		now := time.Now()
 		loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
-		start := time.Date(now.Year(), now.Month(), now.Day() -1, 0, 0, 0, 0, loc)
-		end := start.AddDate(0, 0, 2)
+		start := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, loc)
+		end := start.AddDate(0, 0, 1)
 		err1 := SendReport([]string{"mxn111333@gmail.com"}, start, end)
 		if err1 != nil {
 			log.Printf("Error sending daily report: %v", err1)
@@ -38,9 +38,6 @@ func ScheduleDailyReport() {
 
 func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 	es := service.NewElasticsearch() // assuming util contains the Elasticsearch service initialization
-
-	// Today's date
-	now := time.Now()
 
 	fmt.Println("Start:", start)
 	fmt.Println("End:", end)
@@ -93,7 +90,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 
 	if err := json.NewDecoder(res.Body).Decode(&uniqueServersResp); err != nil {
 		return 0, 0, 0, 0, err
-	} 
+	}
 
 	totalServers := len(uniqueServersResp.Aggregations.UniqueServers.Buckets)
 	totalUptime := time.Duration(0)
@@ -119,8 +116,8 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
                     }
                 }
             ]
-        }`, /*strconv.Itoa(bucket.Key)*/bucket.Key)
-		
+        }`, /*strconv.Itoa(bucket.Key)*/ bucket.Key)
+
 		lastStatusReq := esapi.SearchRequest{
 			Index: []string{"server_status_logs"},
 			Body:  strings.NewReader(lastStatusQuery),
@@ -128,7 +125,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 
 		lastStatusRes, err := lastStatusReq.Do(context.Background(), es.Client)
 		if err != nil {
-			log.Printf("Error fetching last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
+			log.Printf("Error fetching last status for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
 			continue
 		}
 		defer lastStatusRes.Body.Close()
@@ -144,21 +141,28 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		}
 
 		if err := json.NewDecoder(lastStatusRes.Body).Decode(&lastStatusResp); err != nil {
-			log.Printf("Error decoding last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
+			log.Printf("Error decoding last status for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
 			continue
 		}
 
 		lastStatus := lastStatusResp.Hits.Hits[0].Source.Status
-		lastStatusMap[/*strconv.Itoa(bucket.Key)*/bucket.Key] = lastStatus
+		lastStatusMap[ /*strconv.Itoa(bucket.Key)*/ bucket.Key] = lastStatus
 		if lastStatus {
 			onlineServers++
 		}
 
-		uptime, err := es.CalculateServerUptime(/*strconv.Itoa(bucket.Key)*/bucket.Key, now)
+		// uptime, err := es.CalculateServerUptime( /*strconv.Itoa(bucket.Key)*/ bucket.Key, now)
+		// if err != nil {
+		// 	log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
+		// 	continue
+		// }
+
+		uptime, err := es.CalculateServerUptimeFromStartToEnd( /*strconv.Itoa(bucket.Key)*/ bucket.Key, start, end)
 		if err != nil {
-			log.Printf("Error calculating uptime for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
+			log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
 			continue
 		}
+
 		totalUptime += uptime
 	}
 
@@ -169,7 +173,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 	if onlineServers == 0 {
 		return 0, 0, totalServers, totalServers, nil
 	}
-	
+
 	avgUptime := totalUptime.Hours() / float64(onlineServers)
 	offlineServers := totalServers - onlineServers
 
@@ -247,7 +251,7 @@ func SendReport(email []string, start, end time.Time) error {
 		</div>
 	</body>
 	</html>`,
-	start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), avgUptime, online, offline, totalServers))
+		start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), avgUptime, online, offline, totalServers))
 
 	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo ojkq")
 

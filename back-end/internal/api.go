@@ -19,7 +19,7 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
+	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -27,12 +27,17 @@ import (
 // Start initializes and starts the Echo API server
 func Start(cfg *config.Config) error {
 	// Initialize the database
-	db, err := repository.New(cfg)
+	logger, err := util.NewPostgresLogger()
+	if err != nil {
+		log.Fatalf("Error creating logger: %v", err)
+	}
+	db, err := repository.New(cfg, logger)
 	if err != nil {
 		return err
 	} else {
 		log.Printf("Connected to Postgres")
 	}
+	// Enable SQL logging
 	db.Config.Logger = db.Config.Logger.LogMode(4)
 
 	// Initialize Redis service
@@ -66,11 +71,11 @@ func Start(cfg *config.Config) error {
 	//e.HideBanner = true
 	//e.HidePort = true
 	// Configure lumberjack logger
-	e.Logger.SetOutput(util.LogConfig)
+	e.Logger.SetOutput(util.APILog)
 	// Middleware to log HTTP requests
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-        Output: util.LogConfig,
-    }))
+		Output: util.APILog,
+	}))
 	e.Use(middleware.Recover())
 	// Middleware to handle CORS
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
