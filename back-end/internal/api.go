@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/auth"
 	at "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/auth/transport"
@@ -16,9 +17,9 @@ import (
 	custommiddleware "github.com/mxngocqb/VCS-SERVER/back-end/internal/middleware"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -64,12 +65,14 @@ func Start(cfg *config.Config) error {
 	e := echo.New()
 	//e.HideBanner = true
 	//e.HidePort = true
-	//
-	//// Configure lumberjack logger
+	// Configure lumberjack logger
 	e.Logger.SetOutput(util.LogConfig)
-	//s
-	//// Middleware to log HTTP requests
-	// e.Use(middleware.Logger(), middleware.Recover())
+	// Middleware to log HTTP requests
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+        Output: util.LogConfig,
+    }))
+	e.Use(middleware.Recover())
+	// Middleware to handle CORS
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 	e.Binder = &util.CustomBinder{Binder: &echo.DefaultBinder{}}
 

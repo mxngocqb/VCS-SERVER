@@ -4,8 +4,8 @@ import "gopkg.in/natefinch/lumberjack.v2"
 
 var LogConfig = &lumberjack.Logger{
 	Filename:   "./logs/server.log",
-	MaxSize:    5,    // megabytes
-	MaxBackups: 10,   // max number of backup files
-	MaxAge:     30,   // days
-	Compress:   true, // compress rolled files
+	MaxSize:    1,    // Max size in megabytes before log is rotated
+	MaxBackups: 3,    // Max number of old log files to retain
+	MaxAge:     28,   // Max number of days to retain old log files
+	Compress:   true, // Compress/Archive old log files
 }
