@@ -4,11 +4,12 @@ import (
 	"log"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
+	kafka "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
 	"github.com/robfig/cron/v3"
 )
 
 // Config sets up the server service.
-func Config(cfg *config.Config) (*service.Service, *service.ConsumerService, error) {
+func Config(cfg *config.Config) (*service.Service, *kafka.ConsumerService, error) {
 	db, err := service.New(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -17,7 +18,7 @@ func Config(cfg *config.Config) (*service.Service, *service.ConsumerService, err
 	repository := service.NewServerRepository(db.DB)
 	elasticService := service.NewElasticsearch()
 	serverService := service.NewServerService(repository, elasticService)
-	consumerService := service.NewConsumerSevice(cfg)
+	consumerService := kafka.NewConsumerSevice(cfg)
 	
 
 	return serverService, consumerService, nil

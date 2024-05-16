@@ -1,4 +1,4 @@
-package service
+package kafka
 
 import (
 	"encoding/json"
@@ -60,10 +60,20 @@ func (ps *ProducerService) SendServer(id uint,server model.Server) {
 }
 
 func (ps *ProducerService) DropServer(id uint) {
+	dropMessage := service.DropServer{
+		ID: id,
+		Message: "drop",
+	}
+	// Create a new Kafka message
+	message, err := json.Marshal(dropMessage)
+	if err != nil {
+		log.Printf("Error marshalling message: %v", err)
+	}
+
 	// Send the message to the Kafka topic
 	messageSend := &sarama.ProducerMessage{
 		Topic: "Server",
-		Value: sarama.ByteEncoder("drop"),
+		Value: sarama.ByteEncoder(message),
 	}
 
 	// Send the message

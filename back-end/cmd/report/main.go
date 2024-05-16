@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var addr string = "127.0.0.1:50051"
+var addr string = "127.0.0.1:50052"
 
 type Server struct {
 	pb.ReportServiceServer

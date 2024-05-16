@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,10 +17,11 @@ import (
 func ScheduleDailyReport() {
 	c := cron.New()
 	// Send daily report at 8:00 AM
-	_, err := c.AddFunc("0 8 * * *", func() {
+	// _, err := c.AddFunc("0 8 * * *", func() {
+	_, err := c.AddFunc("@every 10m", func() {	
 		now := time.Now()
 		loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
-		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+		start := time.Date(now.Year(), now.Month(), now.Day() -1, 0, 0, 0, 0, loc)
 		end := start.AddDate(0, 0, 2)
 		err1 := SendReport([]string{"mxn111333@gmail.com"}, start, end)
 		if err1 != nil {
@@ -84,8 +84,8 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		Aggregations struct {
 			UniqueServers struct {
 				Buckets []struct {
-					Key int `json:"key"`
-					// Key string `json:"key"`
+					// Key int `json:"key"`
+					Key string `json:"key"`
 				} `json:"buckets"`
 			} `json:"unique_servers"`
 		} `json:"aggregations"`
@@ -119,7 +119,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
                     }
                 }
             ]
-        }`, strconv.Itoa(bucket.Key)/*bucket.Key*/ )
+        }`, /*strconv.Itoa(bucket.Key)*/bucket.Key)
 		
 		lastStatusReq := esapi.SearchRequest{
 			Index: []string{"server_status_logs"},
@@ -128,7 +128,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 
 		lastStatusRes, err := lastStatusReq.Do(context.Background(), es.Client)
 		if err != nil {
-			log.Printf("Error fetching last status for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
+			log.Printf("Error fetching last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
 			continue
 		}
 		defer lastStatusRes.Body.Close()
@@ -144,19 +144,19 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		}
 
 		if err := json.NewDecoder(lastStatusRes.Body).Decode(&lastStatusResp); err != nil {
-			log.Printf("Error decoding last status for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
+			log.Printf("Error decoding last status for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
 			continue
 		}
 
 		lastStatus := lastStatusResp.Hits.Hits[0].Source.Status
-		lastStatusMap[strconv.Itoa(bucket.Key)/*bucket.Key*/ ] = lastStatus
+		lastStatusMap[/*strconv.Itoa(bucket.Key)*/bucket.Key] = lastStatus
 		if lastStatus {
 			onlineServers++
 		}
 
-		uptime, err := es.CalculateServerUptime(strconv.Itoa(bucket.Key)/*bucket.Key*/ , now)
+		uptime, err := es.CalculateServerUptime(/*strconv.Itoa(bucket.Key)*/bucket.Key, now)
 		if err != nil {
-			log.Printf("Error calculating uptime for server %s: %v", strconv.Itoa(bucket.Key)/*bucket.Key*/ , err)
+			log.Printf("Error calculating uptime for server %s: %v", /*strconv.Itoa(bucket.Key)*/bucket.Key, err)
 			continue
 		}
 		totalUptime += uptime
@@ -166,6 +166,10 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		return 0, 0, 0, 0, fmt.Errorf("no server data found for today")
 	}
 
+	if onlineServers == 0 {
+		return 0, 0, totalServers, totalServers, nil
+	}
+	
 	avgUptime := totalUptime.Hours() / float64(onlineServers)
 	offlineServers := totalServers - onlineServers
 
@@ -190,12 +194,60 @@ func SendReport(email []string, start, end time.Time) error {
 	m.SetHeader("From", "mxngocqb@gmail.com")
 	m.SetHeader("To", email...)
 	m.SetHeader("Subject", "Daily Server Report")
-	m.SetBody("text/html", fmt.Sprintf(
-		"<strong>Average Uptime:</strong> %.2f hours<br>"+
-			"<strong>Online Servers:</strong> %d<br>"+
-			"<strong>Offline Servers:</strong> %d<br>"+
-			"<strong>Total Servers:</strong> %d",
-		avgUptime, online, offline, totalServers))
+	m.SetBody("text/html", fmt.Sprintf(`
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				line-height: 1.6;
+				color: #333;
+			}
+			.container {
+				margin: 20px;
+				padding: 20px;
+				border: 1px solid #ddd;
+				border-radius: 5px;
+				background-color: #f9f9f9;
+			}
+			h2 {
+				color: #4CAF50;
+			}
+			.data {
+				margin-top: 20px;
+			}
+			.data strong {
+				color: #555;
+			}
+			.footer {
+				margin-top: 30px;
+				font-size: 0.9em;
+				color: #777;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h2>Daily Server Report</h2>
+			<p>Hello,</p>
+			<p>Here is the daily server report for your servers:</p>
+			<p><strong>From:</strong> %s<br>
+			<strong>To:</strong> %s</p>
+			<div class="data">
+				<p><strong>Average Uptime:</strong> %.2f hours</p>
+				<p><strong>Online Servers:</strong> %d</p>
+				<p><strong>Offline Servers:</strong> %d</p>
+				<p><strong>Total Servers:</strong> %d</p>
+			</div>
+			<div class="footer">
+				<p>Best regards,<br>
+				Server Management Systems - VCS Team</p>
+			</div>
+		</div>
+	</body>
+	</html>`,
+	start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), avgUptime, online, offline, totalServers))
 
 	d := gomail.NewDialer("smtp.gmail.com", 587, "mxngocqb@gmail.com", "xftw lchz hruo ojkq")
 

@@ -18,6 +18,7 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -42,8 +43,9 @@ func Start(cfg *config.Config) error {
 	if err := elasticService.CreateStatusLogIndex(); err != nil {
 		return err
 	}
+	// Initialize Kafka services
+	producerService := kafka.NewProducerService(cfg)
 
-	producerService := service.NewProducerService(cfg)
 	if producerService == nil {
 		return err
 	}
@@ -64,10 +66,10 @@ func Start(cfg *config.Config) error {
 	//e.HidePort = true
 	//
 	//// Configure lumberjack logger
-	//e.Logger.SetOutput(util.LogConfig)
+	e.Logger.SetOutput(util.LogConfig)
 	//s
 	//// Middleware to log HTTP requests
-	//e.Use(middleware.Logger(), middleware.Recover())
+	// e.Use(middleware.Logger(), middleware.Recover())
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 	e.Binder = &util.CustomBinder{Binder: &echo.DefaultBinder{}}
 

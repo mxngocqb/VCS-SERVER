@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
@@ -31,7 +30,7 @@ func NewElasticsearch() *ElasticService {
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("Error creating the Elasticsearch client: %s", err)
-	} else{
+	} else {
 		log.Printf("Connected to Elasticsearch")
 	}
 
@@ -57,7 +56,6 @@ func (es *ElasticService) IndexServer(server model.Server) error {
 		Body:       strings.NewReader(string(data)),
 		Refresh:    "true",
 	}
-
 
 	res, err := req.Do(context.Background(), es.Client)
 	if err != nil {
@@ -133,6 +131,7 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 	// Define the start and end of the day in the server's timezone
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, loc)
 	endOfDay := startOfDay.AddDate(0, 0, 1).Add(-time.Nanosecond)
+	now := time.Now().In(loc)
 
 	// Elasticsearch query
 	query := fmt.Sprintf(`
@@ -147,7 +146,6 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
         },
         "sort": [{"timestamp": {"order": "asc"}}]
     }`, serverID, startOfDay.Format(time.RFC3339), endOfDay.Format(time.RFC3339))
-	
 
 	req := esapi.SearchRequest{
 		Index: []string{"server_status_logs"},
@@ -182,9 +180,13 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 
 	// Track the last "on" time; if the server never turns "off", it's on till the end of the day
 	var lastOnTime *time.Time
+
 	for _, hit := range r.Hits.Hits {
 		if hit.Source.Status {
 			// Server turned "on"
+			if lastOnTime != nil {
+				totalUptime += hit.Source.Timestamp.Sub(*lastOnTime)
+			}
 			lastOnTime = &hit.Source.Timestamp
 		} else if lastOnTime != nil {
 			// Server turned "off"
@@ -194,8 +196,10 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 	}
 
 	// If the last status was "on" and there was no "off" event, count uptime till end of the day
-	if lastOnTime != nil {
+	if lastOnTime != nil && endOfDay.Before(now) {
 		totalUptime += endOfDay.Sub(*lastOnTime)
+	} else if lastOnTime != nil && endOfDay.After(now) {
+		totalUptime += now.Sub(*lastOnTime)
 	}
 
 	return totalUptime, nil

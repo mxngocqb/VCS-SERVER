@@ -14,9 +14,10 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
+	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	util "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
-	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	"gorm.io/gorm"
 
 	// gRPC framework for Go
@@ -40,17 +41,17 @@ type Service struct {
 	rbac       *handler.RbacService
 	elastic    *service.ElasticService
 	cache      cache.ServerCache
-	producer  *service.ProducerService
+	producer   *kafka.ProducerService
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache, 
-	producer  *service.ProducerService) *Service {
+func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache,
+	producer *kafka.ProducerService) *Service {
 	return &Service{
 		repository: repository,
 		rbac:       rbac,
 		elastic:    elastic,
 		cache:      sc,
-		producer: 	producer,
+		producer:   producer,
 	}
 }
 
@@ -280,7 +281,7 @@ func (s *Service) GetServersFiltered(c echo.Context, startCreated, endCreated, s
 	}
 
 	f, err2 := util.CreateExcelFile(servers)
-	
+
 	if err2 != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error creating Excel file: %v", err2))
 	}
@@ -327,7 +328,7 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 	mailArr := []string{mail}
 
 	// Create a gRPC client
-	var addr string = "127.0.0.1:50051" // Address of the gRPC server
+	var addr string = "127.0.0.1:50052" // Address of the gRPC server
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {

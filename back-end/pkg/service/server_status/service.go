@@ -1,12 +1,13 @@
 package service
 
+import "github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 
-type Service struct {	
+type Service struct {
 	repository *ServerRepository
 	elastic    *ElasticService
 }
 
-func NewServerService(repository *ServerRepository,  elastic *ElasticService) *Service {
+func NewServerService(repository *ServerRepository, elastic *ElasticService) *Service {
 	return &Service{
 		repository: repository,
 		elastic:    elastic,
@@ -14,7 +15,7 @@ func NewServerService(repository *ServerRepository,  elastic *ElasticService) *S
 }
 
 // Update updates a server.
-func (s *Service) Update(id string, status bool) (error) {
+func (s *Service) Update(id string, status bool) error {
 	err := s.repository.Update(id, status)
 	if err != nil {
 		return err
@@ -30,10 +31,14 @@ func (s *Service) Update(id string, status bool) (error) {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
-func (s *Service) GetTotalServer() ([]Server, error) {
-	return nil, nil
+func (s *Service) GetTotalServer() (*[]model.Server, error) {
+	servers ,err := s.repository.GetTotalServer()
+	if err != nil {
+		return nil, err
+	}
+	return &servers, nil
 }
