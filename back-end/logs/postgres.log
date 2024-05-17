@@ -490,3 +490,35 @@
 [0.373ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
 2024/05/17 10:47:18 /home/ngoc/Documents/VCS-SERVER/back-end/internal/repository/user.go:72
 [2.582ms] [rows:1] SELECT * FROM "users" WHERE "users"."id" = '1' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2024/05/17 10:50:40 /mnt/e/VCS-SERVER/back-end/pkg/service/server_status/postgres.go:64
+[33.854ms] [rows:30] SELECT * FROM "servers" WHERE "servers"."deleted_at" IS NULL
+2024/05/17 10:51:22 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[3.600ms] [rows:1] SELECT * FROM "user_roles" WHERE "user_roles"."user_id" = 1
+2024/05/17 10:51:22 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[5.467ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
+2024/05/17 10:51:22 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[21.355ms] [rows:1] SELECT * FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2024/05/17 10:51:27 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.784ms] [rows:1] SELECT * FROM "user_roles" WHERE "user_roles"."user_id" = 1
+2024/05/17 10:51:27 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.283ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
+2024/05/17 10:51:27 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[6.395ms] [rows:1] SELECT * FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2024/05/17 10:51:31 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[0.905ms] [rows:1] SELECT * FROM "user_roles" WHERE "user_roles"."user_id" = 1
+2024/05/17 10:51:31 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.003ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
+2024/05/17 10:51:31 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[5.192ms] [rows:1] SELECT * FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2024/05/17 10:51:33 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.050ms] [rows:1] SELECT * FROM "user_roles" WHERE "user_roles"."user_id" = 1
+2024/05/17 10:51:33 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.094ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
+2024/05/17 10:51:33 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[5.659ms] [rows:1] SELECT * FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2024/05/17 10:51:35 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.073ms] [rows:1] SELECT * FROM "user_roles" WHERE "user_roles"."user_id" = 1
+2024/05/17 10:51:35 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[1.123ms] [rows:1] SELECT * FROM "roles" WHERE "roles"."id" = 1
+2024/05/17 10:51:35 /mnt/e/VCS-SERVER/back-end/internal/repository/user.go:62
+[7.987ms] [rows:1] SELECT * FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
