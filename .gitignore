@@ -1,2 +1,3 @@
 node_modules/
-./back-end/logs/
+back-end/logs/*
+/e:/VCS-SERVER/.gitignore
