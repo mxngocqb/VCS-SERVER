@@ -47,3 +47,11 @@
 [Sarama] 2024/05/17 10:45:45 client/brokers registered new broker #1001 at localhost:9092
 [Sarama] 2024/05/17 10:45:45 Successfully initialized new client
 2024/05/17 10:45:45 Kafka Producer created
+[Sarama] 2024/05/17 10:50:40 Initializing new client
+[Sarama] 2024/05/17 10:50:40 ClientID is the default of 'sarama', you should consider setting it to something application-specific.
+[Sarama] 2024/05/17 10:50:40 ClientID is the default of 'sarama', you should consider setting it to something application-specific.
+[Sarama] 2024/05/17 10:50:40 client/metadata fetching metadata for all topics from broker localhost:9092
+[Sarama] 2024/05/17 10:50:40 Connected to broker at localhost:9092 (unregistered)
+[Sarama] 2024/05/17 10:50:40 client/brokers registered new broker #1001 at localhost:9092
+[Sarama] 2024/05/17 10:50:40 Successfully initialized new client
+2024/05/17 10:50:40 Kafka Producer created
