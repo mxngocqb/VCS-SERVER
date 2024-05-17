@@ -1,4 +1,0 @@
-2024/05/17 09:26:23 Request - Method:/report.ReportService/Report; Peer:127.0.0.1:56858; Metadata:map[:authority:[127.0.0.1:50052] content-type:[application/grpc] user-agent:[grpc-go/1.63.2]]; Payload:mail:"mxngoc111333@gmail.com" start:"2024-05-17" end:"2024-05-18"
-2024/05/17 09:26:26 Response - Method:/report.ReportService/Report; Peer:127.0.0.1:56858; Status:OK; Duration:3.01554102s; Payload:message:"Report sent successfully"
-2024/05/17 09:39:20 Request - Method:/report.ReportService/Report; Peer:127.0.0.1:33010; Metadata:map[:authority:[127.0.0.1:50052] content-type:[application/grpc] user-agent:[grpc-go/1.63.2]]; Payload:mail:"mxngoc111333@gmail.com" start:"2024-05-17" end:"2024-05-18"
-2024/05/17 09:39:24 Response - Method:/report.ReportService/Report; Peer:127.0.0.1:33010; Status:OK; Duration:3.946602341s; Payload:message:"Report sent successfully"
