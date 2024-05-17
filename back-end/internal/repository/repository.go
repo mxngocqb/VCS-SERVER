@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"log"
+	"sync"
 
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	"gorm.io/driver/postgres"
@@ -13,20 +15,34 @@ type DB struct {
 	*gorm.DB
 }
 
-func New(config *config.Config, logger logger.Interface) (*DB, error) {
+var (
+    db   *gorm.DB
+    once sync.Once
+)
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
-		config.DB.Host, config.DB.User, config.DB.Password, config.DB.Name, config.DB.Port)
+// Using singleton pattern to connect to the database
+func InitDB(config *config.Config, logger logger.Interface)  {
+	once.Do(func() {
+		var err error
+		// Create a new connection to the database
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
+			config.DB.Host, config.DB.User, config.DB.Password, config.DB.Name, config.DB.Port)
 
-	
-	// Connect to the database
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger: logger,
+		// Connect to the database
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			SkipDefaultTransaction: true,
+			Logger: logger,
+		})
+		if err != nil {
+			log.Printf("Error connecting to database: %v", err)
+		} 
+
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	} 
+}
 
-	return &DB{db}, err
+func GetDB() (*DB, error) {
+    if db == nil {
+        return nil, fmt.Errorf("db is nil")
+    }
+    return &DB{db}, nil
 }

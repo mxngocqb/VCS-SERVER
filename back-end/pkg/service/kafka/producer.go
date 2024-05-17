@@ -12,22 +12,26 @@ import (
 
 type ProducerService struct {
 	producer sarama.SyncProducer
+	logger *log.Logger
 }
 
-func NewProducerService(config *config.Config) *ProducerService {
+func NewProducerService(config *config.Config, logger *log.Logger) *ProducerService {
 	// Set up Kafka producer configuration
+	sarama.Logger = log.New(logger.Writer(), "[Sarama] ", log.LstdFlags)
 	kafkaConfig := sarama.NewConfig()
 	kafkaConfig.Producer.Return.Successes = true
 	// Create a new producer
 	producer, err := sarama.NewSyncProducer(config.KAFKA.Brokers, kafkaConfig)
 	if err != nil {
-		log.Fatalf("Error creating producer: %v", err)
+		logger.Fatalf("Error creating producer: %v", err)
+		log.Println("Error creating producer")
 		return nil
 	} else {
+		logger.Println("Kafka Producer created")
 		log.Println("Kafka Producer created")
 	}
 
-	return &ProducerService{producer}
+	return &ProducerService{producer, logger}
 }
 
 func (ps *ProducerService) SendServer(id uint,server model.Server) {
@@ -39,6 +43,7 @@ func (ps *ProducerService) SendServer(id uint,server model.Server) {
 	// Create a new Kafka message
 	message, err := json.Marshal(serverSend)
 	if err != nil {
+		ps.logger.Printf("Error marshalling message: %v", err)
 		log.Printf("Error marshalling message: %v", err)
 	}
 
@@ -51,9 +56,10 @@ func (ps *ProducerService) SendServer(id uint,server model.Server) {
 	partition, offset, err := ps.producer.SendMessage(messageSend)
 	
 	if err != nil {
+		ps.logger.Printf("Error sending message:", err)
 		log.Printf("Error sending message:", err)
 	} else {
-		log.Printf("Message sent successfully, partition=%d, offset=%d\n", partition, offset)
+		ps.logger.Printf("Message sent successfully, partition=%d, offset=%d\n", partition, offset)
 	}
 
 	
@@ -67,7 +73,7 @@ func (ps *ProducerService) DropServer(id uint) {
 	// Create a new Kafka message
 	message, err := json.Marshal(dropMessage)
 	if err != nil {
-		log.Printf("Error marshalling message: %v", err)
+		ps.logger.Printf("Error marshalling message: %v", err)
 	}
 
 	// Send the message to the Kafka topic
@@ -80,8 +86,9 @@ func (ps *ProducerService) DropServer(id uint) {
 	partition, offset, err := ps.producer.SendMessage(messageSend)
 	
 	if err != nil {
-		log.Printf("Error sending message:", err)
+		ps.logger.Printf("Error sending message:", err)
 	} else {
+		ps.logger.Printf("Message sent successfully, partition=%d, offset=%d\n", partition, offset)
 		log.Printf("Message sent successfully, partition=%d, offset=%d\n", partition, offset)
 	}
 }

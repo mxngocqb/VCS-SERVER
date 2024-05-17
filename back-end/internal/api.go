@@ -31,7 +31,10 @@ func Start(cfg *config.Config) error {
 	if err != nil {
 		log.Fatalf("Error creating logger: %v", err)
 	}
-	db, err := repository.New(cfg, logger)
+	// Initialize the database using singleton pattern
+	repository.InitDB(cfg, logger)
+	db, err := repository.GetDB()
+	// Check if the database is connected
 	if err != nil {
 		return err
 	} else {
@@ -50,8 +53,8 @@ func Start(cfg *config.Config) error {
 		return err
 	}
 	// Initialize Kafka services
-	producerService := kafka.NewProducerService(cfg)
-
+	kafkaLogger := util.KafkaLogger()
+	producerService := kafka.NewProducerService(cfg, kafkaLogger)
 	if producerService == nil {
 		return err
 	}

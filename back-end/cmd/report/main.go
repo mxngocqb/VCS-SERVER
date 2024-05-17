@@ -6,6 +6,7 @@ import (
 
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report"
 	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	"google.golang.org/grpc"
 )
 
@@ -19,6 +20,11 @@ func main() {
 	// Schedule daily report
 	report.ScheduleDailyReport()
 
+	logger := util.GRPCLog()
+    opts := []grpc.ServerOption{
+        grpc.UnaryInterceptor(unaryLoggingInterceptor(logger)),
+    }
+
 	lis, err := net.Listen("tcp", addr)
 
 	if err != nil {
@@ -27,14 +33,13 @@ func main() {
 		log.Printf("Listening on %v", addr)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(opts...)
 	pb.RegisterReportServiceServer(s , &Server{})
 
 	if err := s.Serve(lis); err!= nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
 	
-
 	// Keep the program running
 	select {}
 }

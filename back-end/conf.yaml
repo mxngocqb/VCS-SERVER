@@ -18,3 +18,8 @@ redis:
 kafka:
     brokers: 
         - localhost:9092
+
+elastic:
+    host: localhost:9200
+    index: vcs_sms
+    type: _doc
