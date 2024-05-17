@@ -2,15 +2,21 @@ package main
 
 import (
 	"log"
+
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
-	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	kafka "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
+	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	"github.com/robfig/cron/v3"
 )
 
 // Config sets up the server service.
 func Config(cfg *config.Config) (*service.Service, *kafka.ConsumerService, error) {
-	db, err := service.New(cfg)
+	logger, err := util.NewPostgresLogger()
+	if err != nil {
+		log.Fatalf("Error creating logger: %v", err)
+	}
+	db, err := service.New(cfg, logger)
 	if err != nil {
 		return nil, nil, err
 	}

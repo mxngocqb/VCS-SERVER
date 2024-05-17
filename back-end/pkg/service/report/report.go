@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 func ScheduleDailyReport() {
 	c := cron.New()
 	// Send daily report at 8:00 AM
-	_, err := c.AddFunc("0 7 * * *", func() {
+	_, err := c.AddFunc("8 9 * * *", func() {
 	// _, err := c.AddFunc("@every 10m", func() {
 		now := time.Now()
 		loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
@@ -81,8 +82,8 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		Aggregations struct {
 			UniqueServers struct {
 				Buckets []struct {
-					// Key int `json:"key"`
-					Key string `json:"key"`
+					Key int `json:"key"`
+					// Key string `json:"key"`
 				} `json:"buckets"`
 			} `json:"unique_servers"`
 		} `json:"aggregations"`
@@ -116,7 +117,7 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
                     }
                 }
             ]
-        }`, /*strconv.Itoa(bucket.Key)*/ bucket.Key)
+        }`, /*bucket.Key*/ strconv.Itoa(bucket.Key))
 
 		lastStatusReq := esapi.SearchRequest{
 			Index: []string{"server_status_logs"},
@@ -146,18 +147,18 @@ func FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
 		}
 
 		lastStatus := lastStatusResp.Hits.Hits[0].Source.Status
-		lastStatusMap[ /*strconv.Itoa(bucket.Key)*/ bucket.Key] = lastStatus
+		lastStatusMap[ /*bucket.Key*/ strconv.Itoa(bucket.Key)] = lastStatus
 		if lastStatus {
 			onlineServers++
 		}
 
-		// uptime, err := es.CalculateServerUptime( /*strconv.Itoa(bucket.Key)*/ bucket.Key, now)
+		// uptime, err := es.CalculateServerUptime( /*bucket.Key*/ strconv.Itoa(bucket.Key), now)
 		// if err != nil {
 		// 	log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
 		// 	continue
 		// }
 
-		uptime, err := es.CalculateServerUptimeFromStartToEnd( /*strconv.Itoa(bucket.Key)*/ bucket.Key, start, end)
+		uptime, err := es.CalculateServerUptimeFromStartToEnd( /*bucket.Key*/ strconv.Itoa(bucket.Key), start, end)
 		if err != nil {
 			log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
 			continue
