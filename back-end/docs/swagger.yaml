@@ -11,17 +11,31 @@ definitions:
       name:
         type: string
     type: object
-  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag:
+  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server:
     properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
       ip:
         type: string
       name:
         type: string
       status:
         type: boolean
+      updatedAt:
+        type: string
     type: object
-  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag:
+  github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User:
     properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
       password:
         description: Password should be hashed and never returned in API calls
         type: string
@@ -33,8 +47,18 @@ definitions:
         items:
           $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role'
         type: array
+      updatedAt:
+        type: string
       username:
         type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
     type: object
   internal_handler_auth_transport.LoginRequest:
     properties:
@@ -179,7 +203,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
+              $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
             type: array
         "400":
           description: Invalid parameters for limit or offset
@@ -211,7 +235,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
         "400":
           description: Invalid server data provided
           schema:
@@ -284,7 +308,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
         "400":
           description: Bad request - Invalid update data
           schema:
@@ -485,7 +509,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User'
         "400":
           description: Bad Request - Invalid user data
           schema:
@@ -552,7 +576,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User'
         "400":
           description: Bad Request - Invalid user ID format
           schema:
@@ -592,7 +616,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag'
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User'
         "400":
           description: Bad Request - Invalid user data or ID
           schema:

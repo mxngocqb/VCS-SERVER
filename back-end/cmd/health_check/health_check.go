@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/elastic"
 	kafka "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
 	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
@@ -22,7 +23,11 @@ func Config(cfg *config.Config) (*service.Service, *kafka.ConsumerService, error
 	}
 
 	repository := service.NewServerRepository(db.DB)
-	elasticService := service.NewElasticsearch()
+	elasticClient, err := elastic.ConnectElasticSearch(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to ElasticSearch: %v", err)
+	}
+	elasticService := elastic.NewElasticsearch(elasticClient)
 	serverService := service.NewServerService(repository, elasticService)
 	consumerService := kafka.NewConsumerSevice(cfg)
 	

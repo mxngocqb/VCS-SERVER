@@ -1,50 +1,31 @@
-package service
+package elastic
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 )
 
-// ElasticService provides methods to interact with Elasticsearch.
-type ElasticService struct {
+// ElasticServiceImpl provides methods to interact with Elasticsearch.
+type ElasticServiceImpl struct {
 	Client *elasticsearch.Client
 }
 
 // NewElasticsearch initializes and returns an Elasticsearch client configured for your environment.
-func NewElasticsearch() *ElasticService {
-	cfg := elasticsearch.Config{
-		Addresses: []string{
-			"http://localhost:9200", // Elasticsearch URL
-		},
-	}
-
-	es, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		log.Fatalf("Error creating the Elasticsearch client: %s", err)
-	} else {
-		log.Printf("Connected to Elasticsearch")
-	}
-
-	// Check cluster health to ensure proper connection
-	res, err := es.Info()
-	if err != nil || res.IsError() {
-		log.Fatalf("Error connecting to Elasticsearch at startup: %s", err)
-	}
-
-	return &ElasticService{es}
+func NewElasticsearch(elasticClient *elasticsearch.Client) ElasticService {
+		return &ElasticServiceImpl{elasticClient}
 }
 
 // IndexServer indexes or updates a server document in Elasticsearch.
-func (es *ElasticService) IndexServer(server model.Server) error {
+func (es *ElasticServiceImpl) IndexServer(server model.Server) error {
 	data, err := json.Marshal(server)
 	if err != nil {
 		return err
@@ -71,7 +52,7 @@ func (es *ElasticService) IndexServer(server model.Server) error {
 }
 
 // DeleteServerFromIndex removes a server document from Elasticsearch.
-func (es *ElasticService) DeleteServerFromIndex(id string) error {
+func (es *ElasticServiceImpl) DeleteServerFromIndex(id string) error {
 	req := esapi.DeleteRequest{
 		Index:      "servers",
 		DocumentID: id,
@@ -91,7 +72,7 @@ func (es *ElasticService) DeleteServerFromIndex(id string) error {
 }
 
 // LogStatusChange logs a server's status change to Elasticsearch.
-func (es *ElasticService) LogStatusChange(server model.Server, status bool) error {
+func (es *ElasticServiceImpl) LogStatusChange(server model.Server, status bool) error {
 	logEntry := map[string]interface{}{
 		"server_id": server.ID,
 		"status":    status,
@@ -122,7 +103,7 @@ func (es *ElasticService) LogStatusChange(server model.Server, status bool) erro
 }
 
 // CalculateServerUptime calculates the total uptime for a server on a given day, accounting for timezone.
-func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time) (time.Duration, error) {
+func (es *ElasticServiceImpl) CalculateServerUptime(serverID string, date time.Time) (time.Duration, error) {
 	var totalUptime time.Duration
 
 	// Assume the server timestamp is in GMT+7
@@ -206,7 +187,7 @@ func (es *ElasticService) CalculateServerUptime(serverID string, date time.Time)
 }
 
 // CalculateServerUptime calculates the total uptime for a server on a given day, accounting for timezone.
-func (es *ElasticService) CalculateServerUptimeFromStartToEnd(serverID string, startDate, endDate time.Time) (time.Duration, error) {
+func (es *ElasticServiceImpl) CalculateServerUptimeFromStartToEnd(serverID string, startDate, endDate time.Time) (time.Duration, error) {
 	var totalUptime time.Duration
 
 	// Assume the server timestamp is in GMT+7
@@ -290,7 +271,7 @@ func (es *ElasticService) CalculateServerUptimeFromStartToEnd(serverID string, s
 }
 
 // CreateStatusLogIndex creates an index for server documents in Elasticsearch.
-func (es *ElasticService) CreateStatusLogIndex() error {
+func (es *ElasticServiceImpl) CreateStatusLogIndex() error {
 	// Check if the index already exists
 	res, err := es.Client.Indices.Exists([]string{"server_status_logs"})
 	if err != nil {
@@ -326,7 +307,7 @@ func (es *ElasticService) CreateStatusLogIndex() error {
 }
 
 // DeleteServerLogs removes all log entries for a specific server from Elasticsearch.
-func (es *ElasticService) DeleteServerLogs(serverID string) error {
+func (es *ElasticServiceImpl) DeleteServerLogs(serverID string) error {
 	// Elasticsearch query to delete documents
 	query := fmt.Sprintf(`
     {
@@ -353,4 +334,147 @@ func (es *ElasticService) DeleteServerLogs(serverID string) error {
 	}
 
 	return nil
+}
+
+func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, int, int, int, error) {
+
+	fmt.Println("Start:", start)
+	fmt.Println("End:", end)
+
+	// Query to find all unique server IDs with logs today
+	uniqueServersQuery := fmt.Sprintf(`
+    {
+        "size": 0,
+        "aggs": {	
+            "unique_servers": {
+                "terms": {
+                    "field": "server_id",
+                    "size": 10000 // Adjust size based on expected number of servers
+                }
+            }
+        },
+        "query": {
+            "range": {
+                "timestamp": {
+                    "gte": "%s",
+                    "lte": "%s"
+                }
+            }
+        }
+    }`, start.Format(time.RFC3339), end.Format(time.RFC3339))
+
+	req := esapi.SearchRequest{
+		Index: []string{"server_status_logs"},
+		Body:  strings.NewReader(uniqueServersQuery),
+	}
+
+	res, err := req.Do(context.Background(), es.Client)
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	defer res.Body.Close()
+
+	// Parse unique servers response
+	var uniqueServersResp struct {
+		Aggregations struct {
+			UniqueServers struct {
+				Buckets []struct {
+					// Key int `json:"key"`
+					Key string `json:"key"`
+				} `json:"buckets"`
+			} `json:"unique_servers"`
+		} `json:"aggregations"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&uniqueServersResp); err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	totalServers := len(uniqueServersResp.Aggregations.UniqueServers.Buckets)
+	totalUptime := time.Duration(0)
+	onlineServers := 0
+
+	// Store the last status of each server
+	lastStatusMap := make(map[string]bool)
+
+	// Additional Query to get the last status for each server
+	for _, bucket := range uniqueServersResp.Aggregations.UniqueServers.Buckets {
+		lastStatusQuery := fmt.Sprintf(`
+        {
+            "query": {
+                "term": {
+                    "server_id": "%s"
+                }
+            },
+            "size": 1,
+            "sort": [
+                {
+                    "timestamp": {
+                        "order": "desc"
+                    }
+                }
+            ]
+        }`, /*strconv.Itoa(bucket.Key)*/ bucket.Key)
+
+		lastStatusReq := esapi.SearchRequest{
+			Index: []string{"server_status_logs"},
+			Body:  strings.NewReader(lastStatusQuery),
+		}
+
+		lastStatusRes, err := lastStatusReq.Do(context.Background(), es.Client)
+		if err != nil {
+			log.Printf("Error fetching last status for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
+			continue
+		}
+		defer lastStatusRes.Body.Close()
+
+		var lastStatusResp struct {
+			Hits struct {
+				Hits []struct {
+					Source struct {
+						Status bool `json:"status"`
+					} `json:"_source"`
+				} `json:"hits"`
+			} `json:"hits"`
+		}
+
+		if err := json.NewDecoder(lastStatusRes.Body).Decode(&lastStatusResp); err != nil {
+			log.Printf("Error decoding last status for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
+			continue
+		}
+
+		lastStatus := lastStatusResp.Hits.Hits[0].Source.Status
+		lastStatusMap[ /* strconv.Itoa(bucket.Key)*/ bucket.Key] = lastStatus
+		if lastStatus {
+			onlineServers++
+		}
+
+		// uptime, err := es.CalculateServerUptime( /*bucket.Key*/ strconv.Itoa(bucket.Key), now)
+		// if err != nil {
+		// 	log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
+		// 	continue
+		// }
+
+		uptime, err := es.CalculateServerUptimeFromStartToEnd( /*strconv.Itoa(bucket.Key)*/bucket.Key , start, end)
+		if err != nil {
+			log.Printf("Error calculating uptime for server %s: %v" /*strconv.Itoa(bucket.Key)*/, bucket.Key, err)
+			continue
+		}
+
+		totalUptime += uptime
+	}
+
+	if totalServers == 0 {
+		return 0, 0, 0, 0, fmt.Errorf("no server data found for today")
+	}
+
+	if onlineServers == 0 {
+		return 0, 0, totalServers, totalServers, nil
+	}
+
+	avgUptime := totalUptime.Hours() / float64(onlineServers)
+	offlineServers := totalServers - onlineServers
+
+	return avgUptime, onlineServers, offlineServers, totalServers, nil
 }

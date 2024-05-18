@@ -18,8 +18,8 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/elastic"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
-	service "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -44,11 +44,14 @@ func Start(cfg *config.Config) error {
 	db.Config.Logger = db.Config.Logger.LogMode(4)
 
 	// Initialize Redis service
-	redisConfig := config.NewRedisConfig(cfg)
-	redisClient, expiration, err := config.ConnectRedis(redisConfig)
+	redisClient, expiration, err := cache.ConnectRedis(cfg)
 	serverCache := cache.NewServerRedisCache(redisClient, expiration)
 	// Initialize Elastic service
-	elasticService := service.NewElasticsearch()
+	elasticClient, err := elastic.ConnectElasticSearch(cfg)
+	if err != nil {
+		return err
+	}
+	elasticService := elastic.NewElasticsearch(elasticClient)
 	if err := elasticService.CreateStatusLogIndex(); err != nil {
 		return err
 	}

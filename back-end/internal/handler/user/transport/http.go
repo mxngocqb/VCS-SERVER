@@ -11,7 +11,7 @@ import (
 
 // HTTP represents the HTTP transport for user endpoints.
 type HTTP struct {
-	service user.IService
+	service user.IUserService
 }
 
 // NewHTTP creates a new HTTP Group handler for user endpoints.
@@ -32,7 +32,7 @@ func NewHTTP(r *echo.Group, service *user.Service) {
 // @Accept json
 // @Produce json
 // @Param id path int true "User ID"
-// @Success 200 {object} model.UserSwag
+// @Success 200 {object} model.User
 // @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user ID format"
 // @Failure 404 {object} echo.HTTPError "Not Found - User not found"
 // @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve user"
@@ -55,7 +55,7 @@ func (h HTTP) View(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param user body CreateRequest true "Create User"
-// @Success 201 {object} model.UserSwag
+// @Success 201 {object} model.User
 // @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data"
 // @Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
 // @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to create user"
@@ -90,7 +90,7 @@ func (h HTTP) Create(c echo.Context) error {
 // @Produce json
 // @Param id path int true "User ID"
 // @Param user body UpdateRequest true "Update User"
-// @Success 200 {object} model.UserSwag
+// @Success 200 {object} model.User
 // @Failure 400 {object} echo.HTTPError "Bad Request - Invalid user data or ID"
 // @Failure 403 {object} echo.HTTPError "Forbidden - Insufficient permissions"
 // @Failure 404 {object} echo.HTTPError "Not Found - User not found"

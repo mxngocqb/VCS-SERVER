@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	DB    *Database `yaml:"database,omitempty"`
-	JWT   *JWT      `yaml:"JWT,omitempty"`
-	REDIS *Redis    `yaml:"redis,omitempty"`
-	KAFKA *Kafka    `yaml:"kafka,omitempty"`
+	DB      *Database `yaml:"database,omitempty"`
+	JWT     *JWT      `yaml:"JWT,omitempty"`
+	REDIS   *Redis    `yaml:"redis,omitempty"`
+	KAFKA   *Kafka    `yaml:"kafka,omitempty"`
+	ELASTIC *Elastic  `yaml:"elastic,omitempty"`
 }
 
 // Load reads the config file and returns a Config struct
@@ -49,4 +50,8 @@ type Redis struct {
 
 type Kafka struct {
 	Brokers []string `yaml:"brokers,omitempty"`
+}
+
+type Elastic struct {
+	Hosts []string `yaml:"host,omitempty"`
 }

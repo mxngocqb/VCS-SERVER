@@ -124,7 +124,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
+                                "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server"
                             }
                         }
                     },
@@ -174,7 +174,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server"
                         }
                     },
                     "400": {
@@ -430,7 +430,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server"
                         }
                     },
                     "400": {
@@ -599,7 +599,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User"
                         }
                     },
                     "400": {
@@ -654,7 +654,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User"
                         }
                     },
                     "400": {
@@ -716,7 +716,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag"
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User"
                         }
                     },
                     "400": {
@@ -815,9 +815,18 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.ServerSwag": {
+        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server": {
             "type": "object",
             "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "ip": {
                     "type": "string"
                 },
@@ -826,12 +835,24 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "boolean"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
-        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.UserSwag": {
+        "github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User": {
             "type": "object",
             "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "password": {
                     "description": "Password should be hashed and never returned in API calls",
                     "type": "string"
@@ -848,8 +869,23 @@ const docTemplate = `{
                         "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Role"
                     }
                 },
+                "updatedAt": {
+                    "type": "string"
+                },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         },

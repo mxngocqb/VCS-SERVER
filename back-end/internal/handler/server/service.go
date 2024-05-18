@@ -15,8 +15,8 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/elastic"
 	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/server_status"
 	util "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	"gorm.io/gorm"
 
@@ -25,7 +25,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type IService interface {
+type IServerService interface {
 	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int64, error)
 	Create(c echo.Context, server *model.Server) (*model.Server, error)
 	CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error)
@@ -39,12 +39,12 @@ type IService interface {
 type Service struct {
 	repository *repository.ServerRepository
 	rbac       *handler.RbacService
-	elastic    *service.ElasticService
+	elastic    elastic.ElasticService
 	cache      cache.ServerCache
 	producer   *kafka.ProducerService
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic *service.ElasticService, sc cache.ServerCache,
+func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic elastic.ElasticService, sc cache.ServerCache,
 	producer *kafka.ProducerService) *Service {
 	return &Service{
 		repository: repository,
@@ -82,7 +82,7 @@ func (s *Service) View(c echo.Context, perPage int, offset int, status, field, o
 
 // Create creates a new server.
 func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, error) {
-
+	s.cache.InvalidateCache()
 	fmt.Println("Create call")
 	// Role ID for creating a new server is 1 (Admin)
 	requiredRoleID := uint(1)
@@ -122,6 +122,7 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 
 // CreateMany creates multiple servers and returns detailed results.
 func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error) {
+	s.cache.InvalidateCache()
 	requiredRoleID := uint(1)
 	if err := s.rbac.EnforceRole(c, requiredRoleID); err != nil {
 		return nil, nil, nil, err
@@ -157,7 +158,7 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 
 // Update updates a server.
 func (s *Service) Update(c echo.Context, id string, server *model.Server) (*model.Server, error) {
-
+	s.cache.InvalidateCache()
 	// Role ID for updating a server is 1 (Admin)
 	requiredRoleID := uint(1)
 
@@ -201,6 +202,7 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 
 // Delete deletes a server.
 func (s *Service) Delete(c echo.Context, id string) error {
+	s.cache.InvalidateCache()
 	// Role ID for deleting a server is 1 (Admin)
 	requiredRoleID := uint(1)
 

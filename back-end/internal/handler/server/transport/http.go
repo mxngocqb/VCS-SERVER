@@ -11,7 +11,7 @@ import (
 )
 
 type HTTP struct {
-	service server.IService
+	service server.IServerService
 }
 
 // NewHTTP sets up server-related routes.
@@ -43,7 +43,7 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 // @Param status query string false "Filter by status"
 // @Param field query string false "Field to sort by"
 // @Param order query string false "Order of sort" Enums(asc, desc)
-// @Success 200 {array} model.ServerSwag
+// @Success 200 {array} model.Server
 // @Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
 // @Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
 // @Router /servers [get]
@@ -77,7 +77,7 @@ func (h HTTP) View(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param server body CreateRequest true "Server data"
-// @Success 201 {object} model.ServerSwag
+// @Success 201 {object} model.Server
 // @Failure 400 {object} echo.HTTPError "Invalid server data provided"
 // @Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
 // @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
@@ -113,7 +113,7 @@ func (h HTTP) Create(c echo.Context) error {
 // @Produce json
 // @Param id path int true "Server ID"
 // @Param server body UpdateRequest true "Server update data"
-// @Success 200 {object} model.ServerSwag
+// @Success 200 {object} model.Server
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid update data"
 // @Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"

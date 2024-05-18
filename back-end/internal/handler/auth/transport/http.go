@@ -38,7 +38,7 @@ func NewHTTP(r *echo.Group, service *auth.Service) {
 func (h HTTP) Login(c echo.Context) error {
 	r := new(LoginRequest)
 	if err := c.Bind(r); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input: "+err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input: "+err.Error()) 
 	}
 	// Authenticate the user
 	user, err := h.service.Authenticate(r.Username, r.Password)

@@ -10,7 +10,7 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 )
 
-type IService interface {
+type IUserService interface {
 	View(ctx echo.Context, id string) (*model.User, error)
 	Create(ctx echo.Context, u *model.User) (*model.User, error)
 	Update(ctx echo.Context, id string, u *model.User) (*model.User, error)

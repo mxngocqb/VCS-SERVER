@@ -13,4 +13,5 @@ type ServerCache interface {
 	SetMultiRequest(key string, value []model.Server)  
 	SetTotalServer(key string, value int64)
 	ConstructCacheKey(perPage, offset int, status, field, order string) string
+	InvalidateCache()
 }

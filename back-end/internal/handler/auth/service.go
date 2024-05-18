@@ -34,7 +34,7 @@ func NewAuthService(repository *repository.UserRepository) *Service {
 // @Produce json
 // @Param username path string true "Username"
 // @Param password path string true "Password"
-// @Success 200 {object} model.UserSwag "Authenticated user"
+// @Success 200 {object} model.User "Authenticated user"
 // @Failure 400 {object} string "User not found"
 // @Failure 401 {object} string "Invalid username or password"
 func (s *Service) Authenticate(username, password string) (*model.User, error) {

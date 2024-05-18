@@ -19,10 +19,7 @@ type serverCacheImpl struct {
 	expires time.Duration
 }
 
-func (serverCache *serverCacheImpl) Delete(key string) error {
-	redisKey := "server:" + key
-	return serverCache.client.Del(ctx, redisKey).Err()
-}
+
 
 func NewServerRedisCache(client *redis.Client, expiration int) ServerCache {
 	expires := time.Duration(expiration) * time.Second
@@ -31,6 +28,11 @@ func NewServerRedisCache(client *redis.Client, expiration int) ServerCache {
 		client:  client,
 		expires: expires,
 	}
+}
+
+func (serverCache *serverCacheImpl) Delete(key string) error {
+	redisKey := "server:" + key
+	return serverCache.client.Del(ctx, redisKey).Err()
 }
 
 func (serverCache *serverCacheImpl) Set(key string, value *model.Server) {
@@ -126,7 +128,23 @@ func (serverCache *serverCacheImpl) SetTotalServer(key string, value int64)  {
 	}
 }
 
-
 func (serverCache *serverCacheImpl) ConstructCacheKey(perPage, offset int, status, field, order string) string {
 	return fmt.Sprintf("servers:%d:%d:%s:%s:%s", perPage, offset, status, field, order)
+}
+
+func (serverCache *serverCacheImpl) InvalidateCache() {
+	// Retrieve all keys from Redis
+	ctx := context.Background()
+	keys, err := serverCache.client.Keys(ctx, "servers:*").Result()
+	if err != nil {
+		log.Printf("Error retrieving cache keys for servers: %v", err)
+		return
+	}
+	// Delete all keys
+	if len(keys) > 0 {
+		_, delErr := serverCache.client.Del(ctx, keys...).Result()
+		if delErr != nil {
+			log.Printf("Error deleting cache keys: %v", delErr)
+		}
+	}
 }

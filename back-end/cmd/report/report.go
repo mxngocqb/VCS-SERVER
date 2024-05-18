@@ -26,7 +26,7 @@ func (s *Server) Report(ctx context.Context, in *pb.SendReportRequest) (*pb.Send
 	} 
 
 	// Send report
-	err = report.SendReport(in.Mail, startTime, endTime)
+	err = report.SendReport(in.Mail, startTime, endTime, s.reportService)
 
 	if err != nil {
 		log.Printf("Error sending report: %v", err)
