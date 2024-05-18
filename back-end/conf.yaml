@@ -21,6 +21,6 @@ kafka:
 
 elastic:
     host: 
-        - http://localhost:9200
+        - http://127.0.0.1:9200
     index: vcs_sms
     type: _doc

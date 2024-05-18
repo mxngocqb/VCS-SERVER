@@ -21,11 +21,11 @@ func ConnectElasticSearch(config *config.Config)( *elasticsearch.Client, error) 
 	}
 
 	// Check cluster health to ensure proper connection
-	res, err := es.Info()
-	if err != nil || res.IsError() {
-		log.Fatalf("Error connecting to Elasticsearch at startup: %s", err)
-		return nil, err
-	}
+	// res, err := es.Info()
+	// if err != nil || res.IsError() {
+	// 	log.Fatalf("Error connecting to Elasticsearch at startup: %s", err)
+	// 	return nil, err
+	// }
 
 	return es, err
 }

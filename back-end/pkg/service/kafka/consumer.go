@@ -33,7 +33,7 @@ func NewConsumerSevice(config *config.Config) *ConsumerService {
 func(cs *ConsumerService)ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
     // Create a new partition consumer for the given topic
     partitionConsumer, err := cs.consumer.ConsumePartition("Server", 0, sarama.OffsetNewest)
-    if err != nil {
+    if err != nil { 
         log.Fatalf("Error creating partition consumer: %v", err)
     }
 
