@@ -142,3 +142,5 @@ func (h HTTP) Delete(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+
