@@ -37,14 +37,14 @@ type IServerService interface {
 }
 
 type Service struct {
-	repository *repository.ServerRepository
+	repository repository.ServerRepository
 	rbac       *handler.RbacService
 	elastic    elastic.ElasticService
 	cache      cache.ServerCache
 	producer   *kafka.ProducerService
 }
 
-func NewServerService(repository *repository.ServerRepository, rbac *handler.RbacService, elastic elastic.ElasticService, sc cache.ServerCache,
+func NewServerService(repository repository.ServerRepository, rbac *handler.RbacService, elastic elastic.ElasticService, sc cache.ServerCache,
 	producer *kafka.ProducerService) *Service {
 	return &Service{
 		repository: repository,

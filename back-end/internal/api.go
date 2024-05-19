@@ -63,8 +63,8 @@ func Start(cfg *config.Config) error {
 	}
 
 	// Initialize Repos
-	userRepository := repository.NewUserRepository(db.DB)
-	serverRepository := repository.NewServerRepository(db.DB)
+	userRepository := repository.NewUserRepositoryImpl(db.DB)
+	serverRepository := repository.NewServerRepositoryImpl(db.DB)
 
 	// Initialize services
 	rbacService := handler.NewRbacService(userRepository)
@@ -74,9 +74,7 @@ func Start(cfg *config.Config) error {
 
 	// Set up Echo Server
 	e := echo.New()
-	//e.HideBanner = true
-	//e.HidePort = true
-	// Configure lumberjack logger
+	// Configure lumberjack logger for API logs
 	e.Logger.SetOutput(util.APILog)
 	// Middleware to log HTTP requests
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{

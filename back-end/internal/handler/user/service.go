@@ -17,12 +17,12 @@ type IUserService interface {
 	Delete(ctx echo.Context, id string) error
 }
 type Service struct {
-	repository *repository.UserRepository
+	repository repository.UserRepository
 	rbac  *handler.RbacService
 }
 
 // NewUserService creates a new instance of UserService.
-func NewUserService(repository *repository.UserRepository, rbac *handler.RbacService) *Service {
+func NewUserService(repository repository.UserRepository, rbac *handler.RbacService) *Service {
 	return &Service{
 		repository: repository,
 		rbac:  rbac,

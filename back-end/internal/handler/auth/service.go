@@ -13,14 +13,14 @@ type IService interface {
 
 // Service provides user authentication services.
 type Service struct {
-	repository *repository.UserRepository
+	repository repository.UserRepository
 }
 
 // NewAuthService creates a new authentication service.
 // @Summary Create authentication service
 // @Description It prepares a new instance of the AuthService which interacts with the user repository.
 // @Tags Authentication
-func NewAuthService(repository *repository.UserRepository) *Service {
+func NewAuthService(repository repository.UserRepository) *Service {
 	return &Service{
 		repository: repository,
 	}

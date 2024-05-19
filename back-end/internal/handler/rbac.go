@@ -6,10 +6,10 @@ import (
 )
 
 type RbacService struct {
-	repository *repository.UserRepository
+	repository repository.UserRepository
 }
 
-func NewRbacService(repository *repository.UserRepository) *RbacService {
+func NewRbacService(repository repository.UserRepository) *RbacService {
 	return &RbacService{
 		repository: repository,
 	}
