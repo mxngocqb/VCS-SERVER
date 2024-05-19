@@ -1,5 +1,5 @@
 database:
-    host: localhost
+    host: postgresql
     name: vcs_sms
     port: 5432
     user: postgres
@@ -11,16 +11,16 @@ jwt:
     expiration: 3600
 
 redis:
-    host: localhost:6379
+    host: redis:6379
     expiration: 36000
     password: 
 
 kafka:
     brokers: 
-        - localhost:9092
+        - kafka:9092
 
 elastic:
     host: 
-        - http://127.0.0.1:9200
+        - http://es-container:9200
     index: vcs_sms
     type: _doc

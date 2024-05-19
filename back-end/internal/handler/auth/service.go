@@ -38,7 +38,7 @@ func NewAuthService(repository *repository.UserRepository) *Service {
 // @Failure 400 {object} string "User not found"
 // @Failure 401 {object} string "Invalid username or password"
 func (s *Service) Authenticate(username, password string) (*model.User, error) {
-	// Retrieve the user by username
+	// Get the user by username
 	user, err := s.repository.GetUserByUsername(username)
 	if err != nil {
 		return &model.User{}, err

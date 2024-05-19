@@ -3,6 +3,7 @@ package util
 import (
 	"testing"
 	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +15,16 @@ func TestGenerateToken(t *testing.T) {
 	now := time.Now()
 
 	user := &model.User{
-		Model:    gorm.Model{ID: 1},
+		Model:    gorm.Model{
+			ID:        1,
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+			DeletedAt: gorm.DeletedAt{},
+		},
 		Username: "testuser",
+		Password: "",
+		Roles:    []model.Role{},
+		RoleIDs:  []uint{},
 	}
 
 	tokenString, err := GenerateToken(user)
@@ -23,12 +32,12 @@ func TestGenerateToken(t *testing.T) {
 	assert.NotEmpty(t, tokenString, "Token should not be empty")
 
 	// Parse the token to check if the claims are correct
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("your_secret_key"), nil
 	})
 
 	assert.Nil(t, err, "Token parsing should not return an error")
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*UserClaims); ok && token.Valid {
 		assert.Equal(t, user.ID, claims.ID, "The ID in the token should match the user's ID")
 		assert.Equal(t, user.Username, claims.Username, "The username in the token should match the user's username")
 		assert.WithinDuration(t, now.Add(time.Hour*72), claims.ExpiresAt.Time, time.Second, "Expiration time should be exactly 72 hours from now")

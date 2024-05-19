@@ -330,7 +330,7 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 	mailArr := []string{mail}
 
 	// Create a gRPC client
-	var addr string = "127.0.0.1:50052" // Address of the gRPC server
+	var addr string = "report:50052" // Address of the gRPC server
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {

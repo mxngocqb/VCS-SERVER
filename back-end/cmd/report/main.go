@@ -8,7 +8,7 @@ import (
 	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 )
 
-var addr string = "127.0.0.1:50052"
+var addr string = "0.0.0.0:50052"
 
 type Server struct {
 	pb.ReportServiceServer

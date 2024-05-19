@@ -7,13 +7,13 @@ import (
 	customjwt "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 )
 
-// JWTMiddleware creates a new JWT middleware with the specified signing key.
+// JWTMiddleware creates a new JWT middleware.
 func JWTMiddleware() echojwt.Config {
-	//Config middleware with the custom claims type
+	// Create a new JWT middleware
 	config := echojwt.Config{
 		SigningKey: []byte("your_secret_key"),
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return new(customjwt.CustomClaims) // Use MapClaims for JWT data
+			return new(customjwt.UserClaims) // Use MapClaims for JWT data
 		},
 		SigningMethod: "HS256", // Use HS256 signing method
 	}

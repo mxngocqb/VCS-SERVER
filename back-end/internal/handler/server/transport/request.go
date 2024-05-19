@@ -22,8 +22,3 @@ type UpdateRequest struct {
 	Status bool   `json:"status"`
 	IP     string `json:"ip" validate:"required"`
 }
-
-// Define the request struct of API delete server
-type GetServersReportRequest struct {
-	Mail string `json:"mail" validate:"email"`
-}

@@ -126,7 +126,7 @@ definitions:
     - role_ids
     - username
     type: object
-host: localhost:8090
+host: 192.168.199.11:8090
 info:
   contact: {}
   description: This is the API documentation for the Viettel Cyber Security - Server

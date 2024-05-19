@@ -5,13 +5,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// HashPassword takes a plain text password and returns a bcrypt hashed version.
-// It returns an error if the password string is empty.
+
+// Hash a password with a cost of 14 using bcrypt
 func HashPassword(password string) (string, error) {
 	if password == "" {
 		return "", errors.New("password cannot be empty")
 	}
 
+	// Generate a hashed password
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return "", err
@@ -20,18 +21,16 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), nil
 }
 
-// CheckPasswordHash compares a bcrypt hashed password with its possible plaintext equivalent
+// Check if the provided password matches the hashed password
 func CheckPasswordHash(password, hash string) error {
+	// Compare the provided password with the hashed password
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		// Password does not match
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errors.New("invalid username or password")
 		}
-		// Other error
 		return err
 	}
-
-	// Credentials are valid
 	return nil
 }

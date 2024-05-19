@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type CustomClaims struct {
+type UserClaims struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
@@ -17,7 +17,7 @@ type CustomClaims struct {
 func GenerateToken(u *model.User) (string, error) {
 	// Convert roles to a slice of role names for inclusion in the token.
 
-	claims := &CustomClaims{
+	claims := &UserClaims{
 		ID:       u.ID,
 		Username: u.Username,
 		RegisteredClaims: jwt.RegisteredClaims{

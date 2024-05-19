@@ -49,7 +49,7 @@ func (ps *ProducerService) SendServer(id uint,server model.Server)  error{
 	}
 
 	messageSend := &sarama.ProducerMessage{
-		Topic: "Server",
+		Topic: "Server2",
 		Value: sarama.ByteEncoder(message),
 	}
 

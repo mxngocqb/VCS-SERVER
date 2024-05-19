@@ -14,9 +14,9 @@ type HTTP struct {
 	service server.IServerService
 }
 
-// NewHTTP sets up server-related routes.
-// @Summary Initialize server routes
-// @Description Configures routes for server operations such as CRUD and import/export functionalities.
+// CreateRequest represents the request body for creating a server.
+// @Summary Create server request
+// @Description Represents the request body for creating a server.
 // @Tags Server
 func NewHTTP(r *echo.Group, service *server.Service) {
 	h := HTTP{service}
@@ -32,17 +32,17 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 	sr.GET("/report", h.GetServersReport)
 }
 
-// View retrieves a list of servers with optional pagination and filters.
-// @Summary List servers
-// @Description Retrieves servers based on provided pagination and optional filters.
+// View retrieves a list of servers based on the provided filters and pagination.
+// @Summary View servers
+// @Description Retrieves a list of servers based on the provided filters and pagination.
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param limit query int false "Limit number of servers returned" default(10)
+// @Param limit query int false "Limit the number of servers returned" default(10)
 // @Param offset query int false "Offset in server list" default(0)
 // @Param status query string false "Filter by status"
-// @Param field query string false "Field to sort by"
-// @Param order query string false "Order of sort" Enums(asc, desc)
+// @Param field query string false "The field to sort by"
+// @Param order query string false "Arrangement order" Enums(asc, desc)
 // @Success 200 {array} model.Server
 // @Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
 // @Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
@@ -70,17 +70,17 @@ func (h HTTP) View(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// Create adds a new server to the database.
-// @Summary Create a server
-// @Description Adds a new server to the database.
+// Creeate adds a new server to the database
+// @Summary Create server
+// @Description Adds a new server to the database
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param server body CreateRequest true "Server data"
+// @Param server body CreateRequest true "Server data to create"
 // @Success 201 {object} model.Server
-// @Failure 400 {object} echo.HTTPError "Invalid server data provided"
-// @Failure 500 {object} echo.HTTPError "Failed to create server due to server error"
-// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid server data"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to create serve"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to create server"
 // @Router /servers [post]
 // @Security Bearer
 func (h HTTP) Create(c echo.Context) error {
@@ -275,6 +275,7 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, uptime.Hours())
 }
+
 
 // GetServersReport generates a report of server statuses within a specified date range.
 // @Summary Generate server status report
