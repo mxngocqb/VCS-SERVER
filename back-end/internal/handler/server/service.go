@@ -38,13 +38,13 @@ type IServerService interface {
 
 type Service struct {
 	repository repository.ServerRepository
-	rbac       *handler.RbacService
+	rbac       handler.RbacService
 	elastic    elastic.ElasticService
 	cache      cache.ServerCache
 	producer   *kafka.ProducerService
 }
 
-func NewServerService(repository repository.ServerRepository, rbac *handler.RbacService, elastic elastic.ElasticService, sc cache.ServerCache,
+func NewServerService(repository repository.ServerRepository, rbac handler.RbacService, elastic elastic.ElasticService, sc cache.ServerCache,
 	producer *kafka.ProducerService) *Service {
 	return &Service{
 		repository: repository,
@@ -95,21 +95,21 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 	// Create new server in the database
 	err := s.repository.Create(server)
 	if err != nil {
-		return &model.Server{}, err
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to create server: %v", err))
 	}
 
 	fmt.Println("server", server)
 
 	err = s.elastic.IndexServer(*server)
 	if err != nil {
-		return &model.Server{}, err
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to index server: %v", err))
 	}
 
 	// After successfully creating the server, log the status change
 	err = s.elastic.LogStatusChange(*server, server.Status)
 	if err != nil {
 		// Handle logging error, you may choose to return an error or just log it
-		return &model.Server{}, err
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))
 	}
 
 	s.producer.SendServer(server.ID, *server)
@@ -170,7 +170,7 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 	// Update server in Elasticsearch
 	existingServer, err := s.repository.GetServerByID(id)
 	if err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve server: %v", err))
 	}
 
 	existingServerStatus := existingServer.Status
@@ -178,18 +178,18 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 	// Update server in the database
 	err = s.repository.Update(id, server)
 	if err != nil {
-		return &model.Server{}, err
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update server: %v", err))
 	}
 	// Retrieve updated server
 	updatedServer, err := s.repository.GetServerByID(id)
 	if err != nil {
-		return &model.Server{}, err
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve updated server: %v", err))	
 	}
 
 	if existingServerStatus != updatedServer.Status {
 		err = s.elastic.LogStatusChange(*updatedServer, server.Status)
 		if err != nil {
-			return nil, err
+			return nil, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))	
 		}
 	}
 
@@ -228,19 +228,19 @@ func (s *Service) Delete(c echo.Context, id string) error {
 	// Delete server from the database
 	err = s.repository.Delete(id)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server: %v", err))
 	}
 
 	// DELETE FROM ELASTICSEARCH MIGHT CAUSE ERROR IF THE SERVERS ARE NOT CREATED USING THE ENDPOINT (THEY ARE NOT CREATED IN ELASTICSEARCH IF USING SQL COMMAND ONLY)
 	// Delete server from Elasticsearch
 	err = s.elastic.DeleteServerFromIndex(id)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server from Elasticsearch: %v", err))
 	}
 
 	err = s.elastic.DeleteServerLogs(id)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server logs from Elasticsearch: %v", err))
 	}
 	// Cache the server
 	s.cache.Delete(strconv.Itoa(int(server.ID)))

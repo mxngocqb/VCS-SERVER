@@ -47,7 +47,7 @@ func (s *Service) Authenticate(username, password string) (*model.User, error) {
 	// Compare the provided password with the hashed password
 	err = util.CheckPasswordHash(password, user.Password)
 	if err != nil {
-		return &model.User{}, echo.NewHTTPError(401, "invalid username or password")
+		return &model.User{}, echo.NewHTTPError(401, "Invalid username or password")
 	}
 
 	// Credentials are valid

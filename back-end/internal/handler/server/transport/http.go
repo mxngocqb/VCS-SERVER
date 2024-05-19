@@ -245,7 +245,7 @@ func (h HTTP) Export(c echo.Context) error {
 
 	err := h.service.GetServersFiltered(c, startCreated, endCreated, startUpdated, endUpdated, field, order)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return nil
@@ -270,7 +270,7 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 
 	uptime, err := h.service.GetServerUptime(c, serverID, date)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusOK, uptime.Hours())

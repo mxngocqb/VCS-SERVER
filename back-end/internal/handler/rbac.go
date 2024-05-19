@@ -5,18 +5,21 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 )
 
-type RbacService struct {
+type RbacService interface {
+	EnforceRole(c echo.Context, roleID uint) error
+}
+
+type RbacServiceImpl struct {
 	repository repository.UserRepository
 }
 
-func NewRbacService(repository repository.UserRepository) *RbacService {
-	return &RbacService{
+func NewRbacServiceImpl(repository repository.UserRepository) *RbacServiceImpl {
+	return &RbacServiceImpl{
 		repository: repository,
 	}
 }
 
-func (r *RbacService) EnforceRole(c echo.Context, roleID uint) error {
-
+func (r *RbacServiceImpl) EnforceRole(c echo.Context, roleID uint) error {
 	// Get the user's role from the context
 	userID := c.Get("id").(uint)
 
@@ -32,5 +35,5 @@ func (r *RbacService) EnforceRole(c echo.Context, roleID uint) error {
 		}
 	}
 
-	return echo.NewHTTPError(403, "forbidden")
+	return echo.NewHTTPError(403, "Forbidden - Insufficient permissions")
 }

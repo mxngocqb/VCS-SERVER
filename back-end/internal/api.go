@@ -14,7 +14,7 @@ import (
 	st "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/server/transport"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/user"
 	ut "github.com/mxngocqb/VCS-SERVER/back-end/internal/handler/user/transport"
-	custommiddleware "github.com/mxngocqb/VCS-SERVER/back-end/internal/middleware"
+	internalMiddleware "github.com/mxngocqb/VCS-SERVER/back-end/internal/middleware"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/config"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
@@ -67,7 +67,7 @@ func Start(cfg *config.Config) error {
 	serverRepository := repository.NewServerRepositoryImpl(db.DB)
 
 	// Initialize services
-	rbacService := handler.NewRbacService(userRepository)
+	rbacService := handler.NewRbacServiceImpl(userRepository)
 	userService := user.NewUserService(userRepository, rbacService)
 	authService := auth.NewAuthService(userRepository)
 	serverService := server.NewServerService(serverRepository, rbacService, elasticService, serverCache, producerService)
@@ -91,11 +91,10 @@ func Start(cfg *config.Config) error {
 
 	// New Create user endpoint
 	at.NewHTTP(api, authService)
-
 	// jwtBlocked group
 	jwtBlocked := api.Group("")
-	jwtBlocked.Use(echojwt.WithConfig(custommiddleware.JWTMiddleware()))
-	jwtBlocked.Use(custommiddleware.RoleMiddleware())
+	jwtBlocked.Use(echojwt.WithConfig(internalMiddleware.JWTMiddleware()))
+	jwtBlocked.Use(internalMiddleware.RoleMiddleware())
 
 	ut.NewHTTP(jwtBlocked, userService)
 	st.NewHTTP(jwtBlocked, serverService)

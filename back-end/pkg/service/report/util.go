@@ -10,12 +10,12 @@ import (
 )
 
 func ScheduleDailyReport(elasticService *ElasticService) {
-	c := cron.New()
+	loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
+	c := cron.New(cron.WithLocation(loc))
 	// Send daily report at 8:00 AM
-	_, err := c.AddFunc("8 9 * * *", func() {
+	_, err := c.AddFunc("0 9 * * *", func() {
 		// _, err := c.AddFunc("@every 10m", func() {
 		now := time.Now()
-		loc, _ := time.LoadLocation("Asia/Bangkok") // Ensure timezone consistency with server logs
 		start := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, loc)
 		end := start.AddDate(0, 0, 1)
 		err1 := SendReport([]string{"mxn111333@gmail.com"}, start, end, elasticService)

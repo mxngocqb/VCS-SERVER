@@ -76,7 +76,7 @@ func (h HTTP) Create(c echo.Context) error {
 	// Create new user with roles in the database
 	createdUser, err := h.service.Create(c, newUser)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err 
 	}
 
 	return c.JSON(http.StatusCreated, createdUser)
@@ -114,7 +114,7 @@ func (h HTTP) Update(c echo.Context) error {
 	// Update user with roles in the database
 	updatedUser, err := h.service.Update(c, id, updatedUser)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusOK, updatedUser)
@@ -137,7 +137,7 @@ func (h HTTP) Delete(c echo.Context) error {
 	id := c.Param("id")
 	err := h.service.Delete(c, id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)

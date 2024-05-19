@@ -1,8 +1,7 @@
 package user
 
 import (
-	"errors"
-	"fmt"
+	"net/http"
 	"github.com/labstack/echo/v4"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/handler"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
@@ -18,11 +17,11 @@ type IUserService interface {
 }
 type Service struct {
 	repository repository.UserRepository
-	rbac  *handler.RbacService
+	rbac  handler.RbacService
 }
 
 // NewUserService creates a new instance of UserService.
-func NewUserService(repository repository.UserRepository, rbac *handler.RbacService) *Service {
+func NewUserService(repository repository.UserRepository, rbac handler.RbacService) *Service {
 	return &Service{
 		repository: repository,
 		rbac:  rbac,
@@ -44,20 +43,20 @@ func (s *Service) Create(c echo.Context, u *model.User) (*model.User, error) {
 	// Hash the password before saving it
 	hashedPassword, err := util.HashPassword(u.Password)
 	if err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	u.Password = hashedPassword
 
 	// Fetch roles based on provided role IDs and assign them to the user
 	roles, err := s.repository.GetRoles(u.RoleIDs)
 	if err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	u.Roles = roles
 
 	// Create the user in the database
 	if err := s.repository.Create(u); err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return u, nil
@@ -73,19 +72,19 @@ func (s *Service) Update(c echo.Context, id string, u *model.User) (*model.User,
 	// Retrieve the existing user by ID
 	existingUser, err := s.repository.GetUserByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving user: %v", err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// If no user is found with the given ID, return an error
 	if existingUser == nil {
-		return nil, errors.New("user not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 	}
 
 	// Hash the new password before saving it
 	if u.Password != "" && u.Password != existingUser.Password {
 		hashedPassword, err := util.HashPassword(u.Password)
 		if err != nil {
-			return nil, err
+			return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		existingUser.Password = hashedPassword
 	}
@@ -94,7 +93,7 @@ func (s *Service) Update(c echo.Context, id string, u *model.User) (*model.User,
 	if len(u.RoleIDs) > 0 {
 		roles, err := s.repository.GetRoles(u.RoleIDs)
 		if err != nil {
-			return nil, err
+			return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		existingUser.Roles = roles
 	}
@@ -103,7 +102,7 @@ func (s *Service) Update(c echo.Context, id string, u *model.User) (*model.User,
 
 	// Update the user in the database
 	if err := s.repository.Update(existingUser); err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return existingUser, nil
@@ -119,17 +118,17 @@ func (s *Service) Delete(c echo.Context, id string) error {
 	// Retrieve the existing user by ID
 	existingUser, err := s.repository.GetUserByID(id)
 	if err != nil {
-		return fmt.Errorf("error retrieving user: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// If no user is found with the given ID, return an error
 	if existingUser == nil {
-		return errors.New("user not found")
+		return echo.NewHTTPError(http.StatusNotFound, "user not found")
 	}
 
 	// Delete the user in the database
 	if err := s.repository.Delete(existingUser); err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return nil
