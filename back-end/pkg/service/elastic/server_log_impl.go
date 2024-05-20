@@ -336,15 +336,27 @@ func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, i
 
 	// Elasticsearch query to get unique servers
 	uniqueServersQuery := fmt.Sprintf(`
-    {
+	{
         "size": 0,
         "aggs": {	
             "unique_servers": {
                 "terms": {
                     "field": "server_id",
-                    "size": 10000 // Adjust size based on expected number of servers
-                }
-            }
+                    "size": 10000
+                },
+				"aggs": {
+					"total_uptime": {
+						"sum": {
+							"field": "timeduration"
+						}
+					}
+				}
+            },
+			"average_uptime_per_server": {
+				"avg_bucket": {
+					"buckets_path": "unique_servers>total_uptime"
+				}
+			}
         },
         "query": {
             "range": {
@@ -377,6 +389,9 @@ func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, i
 					Key string `json:"key"`
 				} `json:"buckets"`
 			} `json:"unique_servers"`
+			AverageUptimePerServer struct {
+				Value float64 `json:"value"`
+			} `json:"average_uptime_per_server"`
 		} `json:"aggregations"`
 	}
 
@@ -385,7 +400,7 @@ func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, i
 	}
 
 	totalServers := len(uniqueServersResp.Aggregations.UniqueServers.Buckets)
-	totalUptime := time.Duration(0)
+	avgUptime := uniqueServersResp.Aggregations.AverageUptimePerServer.Value/60
 	onlineServers := 0
 
 	// Store the last status of each server
@@ -443,6 +458,7 @@ func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, i
 			onlineServers++
 		}
 	}
+	
 
 	if totalServers == 0 {
 		return 0, 0, 0, 0, fmt.Errorf("no server data found for today")
@@ -452,7 +468,7 @@ func (es *ElasticServiceImpl) FetchServersInfo(start, end time.Time) (float64, i
 		return 0, 0, totalServers, totalServers, nil
 	}
 
-	avgUptime := totalUptime.Hours() / float64(onlineServers)
+	// avgUptime := totalUptime.Hours() / float64(onlineServers)
 	offlineServers := totalServers - onlineServers
 
 	return avgUptime, onlineServers, offlineServers, totalServers, nil

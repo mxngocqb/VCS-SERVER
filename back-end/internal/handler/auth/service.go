@@ -41,7 +41,7 @@ func (s *Service) Authenticate(username, password string) (*model.User, error) {
 	// Get the user by username
 	user, err := s.repository.GetUserByUsername(username)
 	if err != nil {
-		return &model.User{}, err
+		return &model.User{}, echo.NewHTTPError(401, "Invalid username or password")
 	}
 
 	// Compare the provided password with the hashed password
