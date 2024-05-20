@@ -69,7 +69,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieves servers based on provided pagination and optional filters.",
+                "description": "Retrieves a list of servers based on the provided filters and pagination.",
                 "consumes": [
                     "application/json"
                 ],
@@ -79,12 +79,12 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "List servers",
+                "summary": "View servers",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "Limit number of servers returned",
+                        "description": "Limit the number of servers returned",
                         "name": "limit",
                         "in": "query"
                     },
@@ -103,7 +103,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Field to sort by",
+                        "description": "The field to sort by",
                         "name": "field",
                         "in": "query"
                     },
@@ -113,7 +113,7 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "Order of sort",
+                        "description": "Arrangement order",
                         "name": "order",
                         "in": "query"
                     }
@@ -148,7 +148,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Adds a new server to the database.",
+                "description": "Adds a new server to the database",
                 "consumes": [
                     "application/json"
                 ],
@@ -158,10 +158,10 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Create a server",
+                "summary": "Create server",
                 "parameters": [
                     {
-                        "description": "Server data",
+                        "description": "Server data to create",
                         "name": "server",
                         "in": "body",
                         "required": true,
@@ -178,19 +178,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid server data provided",
+                        "description": "Bad request - Invalid server data",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "403": {
-                        "description": "Forbidden - User does not have permission to delete server",
+                        "description": "Forbidden - User does not have permission to create server",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Failed to create server due to server error",
+                        "description": "Internal server error - Failed to create serve",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -365,7 +365,8 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "mail",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -999,7 +1000,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "192.168.199.11:8090",
+	Host:             "localhost:8090",
 	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
 	Title:            "Viettel Cyber Security - Server Management System",

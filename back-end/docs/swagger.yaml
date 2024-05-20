@@ -126,7 +126,7 @@ definitions:
     - role_ids
     - username
     type: object
-host: 192.168.199.11:8090
+host: localhost:8090
 info:
   contact: {}
   description: This is the API documentation for the Viettel Cyber Security - Server
@@ -169,10 +169,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves servers based on provided pagination and optional filters.
+      description: Retrieves a list of servers based on the provided filters and pagination.
       parameters:
       - default: 10
-        description: Limit number of servers returned
+        description: Limit the number of servers returned
         in: query
         name: limit
         type: integer
@@ -185,11 +185,11 @@ paths:
         in: query
         name: status
         type: string
-      - description: Field to sort by
+      - description: The field to sort by
         in: query
         name: field
         type: string
-      - description: Order of sort
+      - description: Arrangement order
         enum:
         - asc
         - desc
@@ -215,15 +215,15 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: List servers
+      summary: View servers
       tags:
       - Server
     post:
       consumes:
       - application/json
-      description: Adds a new server to the database.
+      description: Adds a new server to the database
       parameters:
-      - description: Server data
+      - description: Server data to create
         in: body
         name: server
         required: true
@@ -237,20 +237,20 @@ paths:
           schema:
             $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
         "400":
-          description: Invalid server data provided
+          description: Bad request - Invalid server data
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "403":
-          description: Forbidden - User does not have permission to delete server
+          description: Forbidden - User does not have permission to create server
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Failed to create server due to server error
+          description: Internal server error - Failed to create serve
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Create a server
+      summary: Create server
       tags:
       - Server
   /servers/{id}:
@@ -470,6 +470,7 @@ paths:
         type: string
       - in: query
         name: mail
+        required: true
         type: string
       produces:
       - application/json

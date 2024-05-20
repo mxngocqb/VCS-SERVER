@@ -22,3 +22,9 @@ type UpdateRequest struct {
 	Status bool   `json:"status"`
 	IP     string `json:"ip" validate:"required"`
 }
+
+type GetServersReportRequest struct{
+	Mail string `json:"mail" validate:"required"`
+}
+
+
