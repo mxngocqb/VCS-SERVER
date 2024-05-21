@@ -50,7 +50,7 @@ type Redis struct {
 
 type Kafka struct {
 	Brokers []string `yaml:"brokers,omitempty"`
-	GroupID string   `yaml:"groupID,omitempty"`
+	GroupID string   `yaml:"group_id,omitempty"`
 }
 
 type Elastic struct {

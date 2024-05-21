@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
@@ -12,71 +13,87 @@ import (
 )
 
 type ConsumerService struct {
-	consumer sarama.Consumer
+    consumerGroup sarama.ConsumerGroup
 }
 
 func NewConsumerService(config *config.Config) *ConsumerService {
-	// Set up Kafka consumer configuration
+    // Set up Kafka consumer group configuration
     kafkaConfig := sarama.NewConfig()
     kafkaConfig.Consumer.Return.Errors = true
-    // Create a new consumer
-    consumer, err := sarama.NewConsumer(config.KAFKA.Brokers, kafkaConfig)
+    log.Printf("Kafka brokers: %v\n", config.KAFKA.GroupID)
+    // Create a new consumer group
+    consumerGroup, err := sarama.NewConsumerGroup(config.KAFKA.Brokers, config.KAFKA.GroupID, kafkaConfig)
     if err != nil {
-        log.Fatalf("Error creating consumer: %v", err)
-    } else{
-        log.Println("Kafka Consumer created")
+        log.Fatalf("Error creating consumer group: %v", err)
+    } else {
+        log.Println("Kafka Consumer Group created")
     }
 
-	return &ConsumerService{consumer}
+    return &ConsumerService{consumerGroup}
 }
 
-func(cs *ConsumerService)ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
-    // Create a new partition consumer for the given topic
-    partitionConsumer, err := cs.consumer.ConsumePartition("Server10", 0, sarama.OffsetNewest)
-    if err != nil { 
-        log.Fatalf("Error creating partition consumer: %v", err)
-    }
+func (cs *ConsumerService) ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
+    // Consume messages from Kafka
+    go func() {
+        for {
+            // Join the consumer group
+            err := cs.consumerGroup.Consume(context.Background(), []string{"Server2"}, cs)
+            if err != nil {
+                log.Printf("Error from consumer group: %v\n", err)
+            }
 
-    defer func() {
-        if err := partitionConsumer.Close(); err != nil {
-            log.Fatalf("Error closing partition consumer: %v", err)
+            // Check for errors
+            if err != nil {
+                log.Printf("Error from consumer group: %v\n", err)
+            }
         }
     }()
 
-    // Consume messages from Kafka
-    for {
-        select {
-        case <-sigchan:
-            log.Println("Received signal, shutting down consumer...")
-            return
-        case msg := <-partitionConsumer.Messages():
-            // Decode the Kafka message into the Server struct
-            if msg.Value == nil {
-                continue
+    // Wait for signals
+    <-sigchan
+    log.Println("Received signal, shutting down consumer...")
+}
+
+func (cs *ConsumerService) Setup(sarama.ConsumerGroupSession) error {
+    // Setup is called before ConsumeClaim
+    return nil
+}
+
+func (cs *ConsumerService) Cleanup(sarama.ConsumerGroupSession) error {
+    // Cleanup is called after ConsumeClaim
+    return nil
+}
+
+func (cs *ConsumerService) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+    // Consume messages from the claim
+    for message := range claim.Messages() {
+        // Decode the Kafka message into the Server struct
+        if message.Value == nil {
+            continue
+        }
+
+        if strings.Contains(string(message.Value), "drop") {
+            var dropServer service.DropServer
+            if err := json.Unmarshal(message.Value, &dropServer); err != nil {
+                log.Printf("Error decoding message: %v\n", err)
+                continue // Skip to the next message
             }
-            
-            if strings.Contains(string(msg.Value), "drop"){
-                var dropServer service.DropServer
-                if err := json.Unmarshal(msg.Value, &dropServer); err != nil {
-                    log.Printf("Error decoding message: %v\n", err)
-                    continue // Skip to the next message
-                }
-                delete(*servers, dropServer.ID)
-                log.Printf("Received message: %v\n", dropServer)
-            }else{
-                var server service.Server
-                if err := json.Unmarshal(msg.Value, &server); err != nil {
-                    log.Printf("Error decoding message: %v\n", err)
-                    continue // Skip to the next message
-                }
-    
-                (*servers)[server.ID] = server
-                log.Printf("Received message: %v\n", (*servers)[server.ID].IP)
+            // delete(*servers, dropServer.ID)
+            log.Printf("Received message: %v\n", dropServer)
+        } else {
+            var server service.Server
+            if err := json.Unmarshal(message.Value, &server); err != nil {
+                log.Printf("Error decoding message: %v\n", err)
+                continue // Skip to the next message
             }
 
-            
-        case err := <-partitionConsumer.Errors():
-            log.Printf("Error consuming message: %v\n", err)
+            // (*servers)[server.ID] = server
+            // log.Printf("Received message: %v\n", (*servers)[server.ID].IP)
+            log.Printf("Received message: %v\n", server.IP)
         }
+
+        // Mark message as processed
+        session.MarkMessage(message, "")
     }
+    return nil
 }

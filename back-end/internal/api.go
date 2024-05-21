@@ -31,6 +31,7 @@ func Start(cfg *config.Config) error {
 	if err != nil {
 		log.Fatalf("Error creating logger: %v", err)
 	}
+	
 	// Initialize the database using singleton pattern
 	repository.InitDB(cfg, logger)
 	db, err := repository.GetDB()
