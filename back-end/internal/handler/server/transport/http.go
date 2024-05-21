@@ -38,7 +38,7 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param limit query int false "Limit the number of servers returned" default(10)
+// @Param limit query int false "Number of servers returned" default(50)
 // @Param offset query int false "Offset in server list" default(0)
 // @Param status query string false "Filter by status"
 // @Param field query string false "The field to sort by"
@@ -68,6 +68,39 @@ func (h HTTP) View(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
+}
+
+// Export generates an Excel file of servers based on filters and sends it to the client.
+// @Summary Export servers
+// @Description Exports filtered server data to an Excel file.
+// @Tags Server
+// @Produce application/octet-stream
+// @Param startCreated query string false "Filter by creation date start"
+// @Param endCreated query string false "Filter by creation date end"
+// @Param startUpdated query string false "Filter by update date start"
+// @Param endUpdated query string false "Filter by update date end"
+// @Param field query string false "Field to sort by"
+// @Param order query string false "Arrangement order" Enums(asc, desc)
+// @Success 200 {file} file "Excel file"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
+// @Router /servers/export [get]
+// @Security Bearer
+func (h HTTP) Export(c echo.Context) error {
+	// Optional query parameters
+	startCreated := c.QueryParam("startCreated")
+	endCreated := c.QueryParam("endCreated")
+	startUpdated := c.QueryParam("startUpdated")
+	endUpdated := c.QueryParam("endUpdated")
+	field := c.QueryParam("field")
+	order := c.QueryParam("order")
+
+	err := h.service.GetServersFiltered(c, startCreated, endCreated, startUpdated, endUpdated, field, order)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Creeate adds a new server to the database
@@ -176,7 +209,7 @@ func (h HTTP) Delete(c echo.Context) error {
 // @Tags Server
 // @Accept multipart/form-data
 // @Produce json
-// @Param file formData file true "Excel file with server data"
+// @Param listserver formData file true "Excel file with list server data"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
@@ -184,7 +217,7 @@ func (h HTTP) Delete(c echo.Context) error {
 // @Router /servers/import [post]
 // @Security Bearer
 func (h HTTP) CreateMany(c echo.Context) error {
-	file, err := c.FormFile("file")
+	file, err := c.FormFile("listserver")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to read file: "+err.Error())
 	}
@@ -218,38 +251,6 @@ func (h HTTP) CreateMany(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// Export generates an Excel file of servers based on filters and sends it to the client.
-// @Summary Export servers
-// @Description Exports filtered server data to an Excel file.
-// @Tags Server
-// @Produce application/octet-stream
-// @Param startCreated query string false "Filter by creation date start"
-// @Param endCreated query string false "Filter by creation date end"
-// @Param startUpdated query string false "Filter by update date start"
-// @Param endUpdated query string false "Filter by update date end"
-// @Param field query string false "Field to sort by"
-// @Param order query string false "Order of sort"
-// @Success 200 {file} file "Excel file"
-// @Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
-// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
-// @Router /servers/export [get]
-// @Security Bearer
-func (h HTTP) Export(c echo.Context) error {
-	// Optional query parameters
-	startCreated := c.QueryParam("startCreated")
-	endCreated := c.QueryParam("endCreated")
-	startUpdated := c.QueryParam("startUpdated")
-	endUpdated := c.QueryParam("endUpdated")
-	field := c.QueryParam("field")
-	order := c.QueryParam("order")
-
-	err := h.service.GetServersFiltered(c, startCreated, endCreated, startUpdated, endUpdated, field, order)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // GetServerUpTime retrieves the uptime of a specified server.
 // @Summary Retrieve server uptime

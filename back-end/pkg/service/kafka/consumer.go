@@ -15,7 +15,7 @@ type ConsumerService struct {
 	consumer sarama.Consumer
 }
 
-func NewConsumerSevice(config *config.Config) *ConsumerService {
+func NewConsumerService(config *config.Config) *ConsumerService {
 	// Set up Kafka consumer configuration
     kafkaConfig := sarama.NewConfig()
     kafkaConfig.Consumer.Return.Errors = true
@@ -32,7 +32,7 @@ func NewConsumerSevice(config *config.Config) *ConsumerService {
 
 func(cs *ConsumerService)ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
     // Create a new partition consumer for the given topic
-    partitionConsumer, err := cs.consumer.ConsumePartition("Server2", 0, sarama.OffsetNewest)
+    partitionConsumer, err := cs.consumer.ConsumePartition("Server10", 0, sarama.OffsetNewest)
     if err != nil { 
         log.Fatalf("Error creating partition consumer: %v", err)
     }

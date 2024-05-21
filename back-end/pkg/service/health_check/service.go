@@ -29,7 +29,7 @@ func Config(cfg *config.Config) (*service.Service, *kafka.ConsumerService, error
 	}
 	elasticService := elastic.NewElasticsearch(elasticClient)
 	serverService := service.NewServerService(repository, elasticService)
-	consumerService := kafka.NewConsumerSevice(cfg)
+	consumerService := kafka.NewConsumerService(cfg)
 	
 
 	return serverService, consumerService, nil

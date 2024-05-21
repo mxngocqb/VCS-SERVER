@@ -131,5 +131,5 @@ func (s *Service) Delete(c echo.Context, id string) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

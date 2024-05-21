@@ -83,8 +83,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "default": 10,
-                        "description": "Limit the number of servers returned",
+                        "default": 50,
+                        "description": "Number of servers returned",
                         "name": "limit",
                         "in": "query"
                     },
@@ -245,8 +245,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
                         "type": "string",
-                        "description": "Order of sort",
+                        "description": "Arrangement order",
                         "name": "order",
                         "in": "query"
                     }
@@ -295,7 +299,7 @@ const docTemplate = `{
                     {
                         "type": "file",
                         "description": "Excel file with server data",
-                        "name": "file",
+                        "name": "listServer",
                         "in": "formData",
                         "required": true
                     }
@@ -1000,7 +1004,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8090",
+	Host:             "192.168.88.130:8090",
 	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
 	Title:            "Viettel Cyber Security - Server Management System",

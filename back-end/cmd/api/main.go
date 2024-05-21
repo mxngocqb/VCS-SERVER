@@ -11,7 +11,7 @@ import (
 // @title Viettel Cyber Security - Server Management System
 // @version 1.0
 // @description This is the API documentation for the Viettel Cyber Security - Server Management System.
-// @host localhost:8090
+// @host 192.168.88.130:8090
 // @BasePath /api
 // @schemes http https
 // @securityDefinitions.apikey Bearer

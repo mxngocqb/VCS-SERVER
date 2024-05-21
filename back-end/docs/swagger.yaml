@@ -126,7 +126,7 @@ definitions:
     - role_ids
     - username
     type: object
-host: localhost:8090
+host: 192.168.88.130:8090
 info:
   contact: {}
   description: This is the API documentation for the Viettel Cyber Security - Server
@@ -171,8 +171,8 @@ paths:
       - application/json
       description: Retrieves a list of servers based on the provided filters and pagination.
       parameters:
-      - default: 10
-        description: Limit the number of servers returned
+      - default: 50
+        description: Number of servers returned
         in: query
         name: limit
         type: integer
@@ -391,7 +391,10 @@ paths:
         in: query
         name: field
         type: string
-      - description: Order of sort
+      - description: Arrangement order
+        enum:
+        - asc
+        - desc
         in: query
         name: order
         type: string
@@ -423,7 +426,7 @@ paths:
       parameters:
       - description: Excel file with server data
         in: formData
-        name: file
+        name: listServer
         required: true
         type: file
       produces:

@@ -80,7 +80,7 @@ func (ps *ProducerService) DropServer(id uint) error {
 
 	// Send the message to the Kafka topic
 	messageSend := &sarama.ProducerMessage{
-		Topic: "Server",
+		Topic: "Server10",
 		Value: sarama.ByteEncoder(message),
 	}
 

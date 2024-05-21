@@ -10,7 +10,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8090",
+    "host": "192.168.88.130:8090",
     "basePath": "/api",
     "paths": {
         "/login": {
@@ -81,8 +81,8 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "default": 10,
-                        "description": "Limit the number of servers returned",
+                        "default": 50,
+                        "description": "Number of servers returned",
                         "name": "limit",
                         "in": "query"
                     },
@@ -243,8 +243,12 @@
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
                         "type": "string",
-                        "description": "Order of sort",
+                        "description": "Arrangement order",
                         "name": "order",
                         "in": "query"
                     }
@@ -293,7 +297,7 @@
                     {
                         "type": "file",
                         "description": "Excel file with server data",
-                        "name": "file",
+                        "name": "listServer",
                         "in": "formData",
                         "required": true
                     }

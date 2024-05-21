@@ -2,7 +2,7 @@ package transport
 
 import (
 	"bytes"
-	"errors"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -105,26 +105,29 @@ func TestHTTP_Delete(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetPath("/users/:id")
 		c.SetParamNames("id")
-		c.SetParamValues("2")
+		c.SetParamValues("3")
 	
 		// Create a new mock service
 		mockServices := new(mockService.MockUserService)
 		handler := HTTP{service: mockServices}
 	
 		// Mock the Delete method to return an error
-		mockErr := errors.New("delete failed")
-		mockServices.On("Delete", mock.Anything, "2").Return(mockErr)
+		mockErr := echo.NewHTTPError(http.StatusNotFound, "user not found")
+		mockServices.On("Delete", mock.Anything, "3").Return(mockErr)
 	
 		// Call the handler
 		err := handler.Delete(c)
+		log.Println("Err: ",err)
+
 		if assert.Error(t, err) {
 			he, ok := err.(*echo.HTTPError)
 			if assert.True(t, ok) {
-				assert.Equal(t, http.StatusInternalServerError, he.Code) // Check if the response status code is 500
-				assert.Contains(t, he.Message.(string), "delete failed")  // Check if the response body contains the error message
+				assert.Equal(t, http.StatusNotFound, he.Code) // Check if the response status code is 500
+				assert.Contains(t, he.Message.(string), "not found")  // Check if the response body contains the error message
 				mockServices.AssertExpectations(t)
 			}
 		}
+
 	})
 	
 }

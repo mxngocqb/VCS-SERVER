@@ -1,13 +1,12 @@
 package repository
 
 import (
-	"fmt"
+	"time"
+
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"gorm.io/gorm"
-	"strings"
-	"time"
+	"gorm.io/gorm/clause"
 )
-
 
 // ServerRepositoryImpl holds DB connection logic
 type ServerRepositoryImpl struct {
@@ -31,7 +30,11 @@ func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, 
 
 	// Validate and apply sorting if field and order are provided
 	if field != "" && (order == "asc" || order == "desc") {
-		query = query.Order(fmt.Sprintf("%s %s", field, order))
+		if order == "asc" {
+			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: field}, Desc: false})
+		} else {
+			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: field}, Desc: true})
+		}
 	} else {
 		query = query.Order("created_at desc") // Default sorting
 	}
@@ -65,13 +68,14 @@ func (ss *ServerRepositoryImpl) GetServersByOptionalDateRange(startCreated, endC
 	}
 
 	// Handle ordering
-	if field != "" && order != "" {
-		validOrders := map[string]string{"asc": "ASC", "desc": "DESC"}
-		if sortOrder, valid := validOrders[strings.ToLower(order)]; valid {
-			query = query.Order(fmt.Sprintf("%s %s", field, sortOrder))
+	if field != "" && (order == "asc" || order == "desc") {
+		if order == "asc" {
+			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: field}, Desc: false})
 		} else {
-			return nil, fmt.Errorf("invalid order direction: %s", order)
+			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: field}, Desc: true})
 		}
+	} else {
+		query = query.Order("created_at desc") // Default sorting
 	}
 
 	var servers []model.Server
