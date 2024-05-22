@@ -29,18 +29,24 @@ func Config(cfg *config.Config) (*service.Service, *kafka.ConsumerService, error
 	}
 	elasticService := elastic.NewElasticsearch(elasticClient)
 	serverService := service.NewServerService(repository, elasticService)
-	consumerService := kafka.NewConsumerService(cfg)
+	
+	serverMap := make(map[uint]service.Server)
+	getAllServer(&serverMap, serverService)
+	log.Println("All server loaded") 
+	consumerService := kafka.NewConsumerService(cfg, serverMap)
 	
 
 	return serverService, consumerService, nil
 }
 
 // Start starts the cron job.
-func StartPing(serverMap map[uint]service.Server, serverService *service.Service){
+func StartPing(consumerService *kafka.ConsumerService, serverService *service.Service){
 	c := cron.New()
 
 	_, err := c.AddFunc("@every 5m", func() {
+		serverMap := consumerService.GetServerList()
 		pingServer(serverMap, serverService)
+		log.Println("Ping server", serverMap)
 	})
 
 	if err != nil {

@@ -14,9 +14,10 @@ import (
 
 type ConsumerService struct {
     consumerGroup sarama.ConsumerGroup
+    listServer map[uint]service.Server
 }
 
-func NewConsumerService(config *config.Config) *ConsumerService {
+func NewConsumerService(config *config.Config, serverMap map[uint]service.Server) *ConsumerService {
     // Set up Kafka consumer group configuration
     kafkaConfig := sarama.NewConfig()
     kafkaConfig.Consumer.Return.Errors = true
@@ -28,16 +29,15 @@ func NewConsumerService(config *config.Config) *ConsumerService {
     } else {
         log.Println("Kafka Consumer Group created")
     }
-
-    return &ConsumerService{consumerGroup}
+    return &ConsumerService{consumerGroup, serverMap}
 }
 
-func (cs *ConsumerService) ConsumerStart(servers *map[uint]service.Server, sigchan chan os.Signal) {
+func (cs *ConsumerService) ConsumerStart(sigchan chan os.Signal) {
     // Consume messages from Kafka
     go func() {
         for {
             // Join the consumer group
-            err := cs.consumerGroup.Consume(context.Background(), []string{"Server2"}, cs)
+            err := cs.consumerGroup.Consume(context.Background(), []string{"Server3"}, cs)
             if err != nil {
                 log.Printf("Error from consumer group: %v\n", err)
             }
@@ -79,6 +79,7 @@ func (cs *ConsumerService) ConsumeClaim(session sarama.ConsumerGroupSession, cla
                 continue // Skip to the next message
             }
             // delete(*servers, dropServer.ID)
+            delete(cs.listServer, dropServer.ID)
             log.Printf("Received message: %v\n", dropServer)
         } else {
             var server service.Server
@@ -87,6 +88,7 @@ func (cs *ConsumerService) ConsumeClaim(session sarama.ConsumerGroupSession, cla
                 continue // Skip to the next message
             }
 
+            cs.listServer[server.ID] = server
             // (*servers)[server.ID] = server
             // log.Printf("Received message: %v\n", (*servers)[server.ID].IP)
             log.Printf("Received message: %v\n", server.IP)
@@ -97,3 +99,11 @@ func (cs *ConsumerService) ConsumeClaim(session sarama.ConsumerGroupSession, cla
     }
     return nil
 }
+
+func (cs *ConsumerService) GetServerList() map[uint]service.Server {
+    return cs.listServer
+}
+
+func (cs *ConsumerService) SetServerList(servers map[uint]service.Server) {
+    cs.listServer = servers
+}   

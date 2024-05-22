@@ -298,8 +298,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "Excel file with server data",
-                        "name": "listServer",
+                        "description": "Excel file with list server data",
+                        "name": "listserver",
                         "in": "formData",
                         "required": true
                     }
@@ -1004,7 +1004,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "192.168.88.130:8090",
+	Host:             "localhost:8090",
 	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
 	Title:            "Viettel Cyber Security - Server Management System",

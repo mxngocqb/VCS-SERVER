@@ -10,7 +10,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "192.168.88.130:8090",
+    "host": "localhost:8090",
     "basePath": "/api",
     "paths": {
         "/login": {
@@ -296,8 +296,8 @@
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "Excel file with server data",
-                        "name": "listServer",
+                        "description": "Excel file with list server data",
+                        "name": "listserver",
                         "in": "formData",
                         "required": true
                     }

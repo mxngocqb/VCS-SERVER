@@ -126,7 +126,7 @@ definitions:
     - role_ids
     - username
     type: object
-host: 192.168.88.130:8090
+host: localhost:8090
 info:
   contact: {}
   description: This is the API documentation for the Viettel Cyber Security - Server
@@ -424,9 +424,9 @@ paths:
       - multipart/form-data
       description: Creates multiple servers from an uploaded Excel file.
       parameters:
-      - description: Excel file with server data
+      - description: Excel file with list server data
         in: formData
-        name: listServer
+        name: listserver
         required: true
         type: file
       produces:
