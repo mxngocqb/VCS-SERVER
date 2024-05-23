@@ -14,8 +14,8 @@ import (
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
 	"github.com/mxngocqb/VCS-SERVER/back-end/internal/repository"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/cache"
-	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
 	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/elastic"
+	"github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/kafka"
 	pb "github.com/mxngocqb/VCS-SERVER/back-end/pkg/service/report/proto"
 	util "github.com/mxngocqb/VCS-SERVER/back-end/pkg/util"
 	"gorm.io/gorm"
@@ -26,12 +26,12 @@ import (
 )
 
 type IServerService interface {
-	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int64, error)
+	View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int, error)
 	Create(c echo.Context, server *model.Server) (*model.Server, error)
-	CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error)
+	CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []string, []string, error)
 	Update(c echo.Context, id string, server *model.Server) (*model.Server, error)
 	Delete(c echo.Context, id string) error
-	GetServersFiltered(c echo.Context, startCreated, endCreated, startUpdated, endUpdated, field, order string) error
+	GetServersFiltered(c echo.Context, perPage int, offset int, status, field, order string) error
 	GetServerUptime(c echo.Context, serverID string, date string) (time.Duration, error)
 	GetServerReport(c echo.Context, mail, start, end string) error
 }
@@ -56,7 +56,7 @@ func NewServerService(repository repository.ServerRepository, rbac handler.RbacS
 }
 
 // View retrieves servers from the database with optional pagination and status filtering.
-func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int64, error) {
+func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int, error) {
 	// ctx := c.Request().Context()
 	key := s.cache.ConstructCacheKey(perPage, offset, status, field, order)
 	key_total := key + "_total"
@@ -80,6 +80,52 @@ func (s *Service) View(c echo.Context, perPage int, offset int, status, field, o
 	return servers, numberOfServer, nil
 }
 
+// GetServersFiltered retrieves servers with optional date range filtering.
+func (s *Service) GetServersFiltered(c echo.Context, perPage int, offset int, status, field, order string) error {
+	key := s.cache.ConstructCacheKey(perPage, offset, status, field, order)
+	key_total := key + "_total"
+	// Try to get data from Redis first
+	values := s.cache.GetMultiRequest(key)
+	total := s.cache.GetTotalServer(key_total)
+
+	if values != nil && total != -1 {
+		f, err2 := util.CreateExcelFile(values)
+		if err2 != nil {
+			return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("Error creating Excel file: %v", err2))
+		}
+
+		// Save Excel file to disk
+		filePath := "export.xlsx"
+		if err := f.SaveAs(filePath); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save Excel file")
+		}
+
+		// Serve the file
+		return c.Attachment(filePath, "export.xlsx")
+	}	
+	
+	// Data not found in cache, fetch from database
+	servers, _, err := s.repository.GetServersFiltered(perPage, offset, status, field, order)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Failed to retrieve servers: %v", err))
+	}
+
+	f, err2 := util.CreateExcelFile(servers)
+
+	if err2 != nil {
+		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("Error creating Excel file: %v", err2))
+	}
+
+	// Save Excel file to disk
+	filePath := "export.xlsx"
+	if err := f.SaveAs(filePath); err != nil {
+		return echo.NewHTTPError(http.StatusConflict, "Failed to save Excel file")
+	}
+
+	// Serve the file
+	return c.Attachment(filePath, "export.xlsx")
+}
+
 // Create creates a new server.
 func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, error) {
 	s.cache.InvalidateCache()
@@ -95,21 +141,21 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 	// Create new server in the database
 	err := s.repository.Create(server)
 	if err != nil {
-		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to create server: %v", err))
+		return &model.Server{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to create server: %v", err))
 	}
 
 	fmt.Println("server", server)
 
 	err = s.elastic.IndexServer(*server)
 	if err != nil {
-		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to index server: %v", err))
+		return &model.Server{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to index server: %v", err))
 	}
 
 	// After successfully creating the server, log the status change
 	err = s.elastic.LogStatusChange(*server, server.Status)
 	if err != nil {
 		// Handle logging error, you may choose to return an error or just log it
-		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))
+		return &model.Server{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error logging status change: %v", err))
 	}
 
 	s.producer.SendServer(server.ID, *server)
@@ -121,7 +167,7 @@ func (s *Service) Create(c echo.Context, server *model.Server) (*model.Server, e
 }
 
 // CreateMany creates multiple servers and returns detailed results.
-func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error) {
+func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []string, []string, error) {
 	s.cache.InvalidateCache()
 	requiredRoleID := uint(1)
 	if err := s.rbac.EnforceRole(c, requiredRoleID); err != nil {
@@ -129,16 +175,16 @@ func (s *Service) CreateMany(c echo.Context, servers []model.Server) ([]model.Se
 	}
 
 	var createdServers []model.Server
-	var successLines, failedLines []int
+	var successLines, failedLines []string
 
-	for i, server := range servers {
+	for _, server := range servers {
 		err := s.repository.Create(&server)
 		if err != nil {
-			failedLines = append(failedLines, i+2) // +2 to account for zero index and header row
+			failedLines = append(failedLines, server.Name) // +2 to account for zero index and header row
 			continue
 		}
 		createdServers = append(createdServers, server)
-		successLines = append(successLines, i+2)
+		successLines = append(successLines, server.Name)
 
 		err = s.elastic.IndexServer(server)
 		if err != nil {
@@ -183,13 +229,13 @@ func (s *Service) Update(c echo.Context, id string, server *model.Server) (*mode
 	// Retrieve updated server
 	updatedServer, err := s.repository.GetServerByID(id)
 	if err != nil {
-		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve updated server: %v", err))	
+		return &model.Server{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve updated server: %v", err))
 	}
 
 	if existingServerStatus != updatedServer.Status {
 		err = s.elastic.LogStatusChange(*updatedServer, server.Status)
 		if err != nil {
-			return nil, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))	
+			return nil, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))
 		}
 	}
 
@@ -216,86 +262,36 @@ func (s *Service) Delete(c echo.Context, id string) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Server with ID %s not found", id))
 		}
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve server: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to retrieve server: %v", err))
 	}
 
 	// Log status change before deleting the server
 	err = s.elastic.LogStatusChange(*server, false)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error logging status change: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error logging status change: %v", err))
 	}
 
 	// Delete server from the database
 	err = s.repository.Delete(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to delete server: %v", err))
 	}
 
 	// DELETE FROM ELASTICSEARCH MIGHT CAUSE ERROR IF THE SERVERS ARE NOT CREATED USING THE ENDPOINT (THEY ARE NOT CREATED IN ELASTICSEARCH IF USING SQL COMMAND ONLY)
 	// Delete server from Elasticsearch
 	err = s.elastic.DeleteServerFromIndex(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server from Elasticsearch: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to delete server from Elasticsearch: %v", err))
 	}
 
 	err = s.elastic.DeleteServerLogs(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to delete server logs from Elasticsearch: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Failed to delete server logs from Elasticsearch: %v", err))
 	}
 	// Cache the server
 	s.cache.Delete(strconv.Itoa(int(server.ID)))
 	s.producer.DropServer(server.ID)
 	return nil
-}
-
-// GetServersFiltered retrieves servers with optional date range filtering.
-func (s *Service) GetServersFiltered(c echo.Context, startCreated, endCreated, startUpdated, endUpdated, field, order string) error {
-	layout := "2006-01-02"
-
-	var startCreatedTime, endCreatedTime, startUpdatedTime, endUpdatedTime time.Time
-	var err error
-
-	if startCreated != "" && endCreated != "" {
-		startCreatedTime, err = time.Parse(layout, startCreated)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid startCreated date format")
-		}
-		endCreatedTime, err = time.Parse(layout, endCreated)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid endCreated date format")
-		}
-	}
-
-	if startUpdated != "" && endUpdated != "" {
-		startUpdatedTime, err = time.Parse(layout, startUpdated)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid startUpdated date format")
-		}
-		endUpdatedTime, err = time.Parse(layout, endUpdated)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid endUpdated date format")
-		}
-	}
-
-	servers, err := s.repository.GetServersByOptionalDateRange(startCreatedTime, endCreatedTime, startUpdatedTime, endUpdatedTime, field, order)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error fetching servers: %v", err))
-	}
-
-	f, err2 := util.CreateExcelFile(servers)
-
-	if err2 != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error creating Excel file: %v", err2))
-	}
-
-	// Save Excel file to disk
-	filePath := "export.xlsx"
-	if err := f.SaveAs(filePath); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save Excel file")
-	}
-
-	// Serve the file
-	return c.Attachment(filePath, "export.xlsx")
 }
 
 // GetServerUptime calculates the uptime for a server for the entire specified day.
@@ -308,7 +304,7 @@ func (s *Service) GetServerUptime(c echo.Context, serverID string, date string) 
 
 	uptime, err := s.elastic.CalculateServerUptime(serverID, day)
 	if err != nil {
-		return 0, echo.NewHTTPError(http.StatusInternalServerError, "Error calculating uptime: "+err.Error())
+		return 0, echo.NewHTTPError(http.StatusBadRequest, "Error calculating uptime: "+err.Error())
 	}
 
 	return uptime, nil
@@ -344,7 +340,7 @@ func (s *Service) GetServerReport(c echo.Context, mail, start, end string) error
 	err = doSendReport(client, mailArr, start, end)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error sending report: "+err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, "Error sending report: "+err.Error())
 	}
 
 	return c.String(http.StatusOK, "Report sent successfully")

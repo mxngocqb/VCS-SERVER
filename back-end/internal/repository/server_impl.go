@@ -19,7 +19,7 @@ func NewServerRepositoryImpl(db *gorm.DB) ServerRepository {
 }
 
 // GetServersFiltered retrieves servers with pagination and a status filter
-func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, field, order string) ([]model.Server, int64, error) {
+func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, field, order string) ([]model.Server, int, error) {
 	var servers []model.Server
 	query := ss.DB.Model(&model.Server{})
 
@@ -47,13 +47,8 @@ func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, 
 		return nil, 0, err
 	}
 
-	var totalCount int64
-	// Get the total count of servers satisfying the filters
-	if err := query.Count(&totalCount).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return servers, totalCount, nil
+	
+	return servers, len(servers), nil
 }
 
 // GetServersByOptionalDateRange fetches servers based on optional created and updated date ranges.

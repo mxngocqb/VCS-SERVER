@@ -124,7 +124,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server"
+                                "$ref": "#/definitions/internal_handler_server_transport.ServerResponse"
                             }
                         }
                     },
@@ -215,32 +215,28 @@ const docTemplate = `{
                 "summary": "Export servers",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Filter by creation date start",
-                        "name": "startCreated",
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Number of servers returned",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset in server list",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by creation date end",
-                        "name": "endCreated",
+                        "description": "Filter by status",
+                        "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by update date start",
-                        "name": "startUpdated",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by update date end",
-                        "name": "endUpdated",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Field to sort by",
+                        "description": "The field to sort by",
                         "name": "field",
                         "in": "query"
                     },
@@ -308,8 +304,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handler_server_transport.ImportServerResponse"
                         }
                     },
                     "400": {
@@ -368,6 +363,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Recipient Email",
                         "name": "mail",
                         "in": "query",
                         "required": true
@@ -925,6 +921,46 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "boolean"
+                }
+            }
+        },
+        "internal_handler_server_transport.ImportServerResponse": {
+            "type": "object",
+            "properties": {
+                "lists_fail": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "lists_success": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "total_fail": {
+                    "type": "integer"
+                },
+                "total_success": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler_server_transport.ServerResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

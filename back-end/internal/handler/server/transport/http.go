@@ -43,8 +43,9 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 // @Param status query string false "Filter by status"
 // @Param field query string false "The field to sort by"
 // @Param order query string false "Arrangement order" Enums(asc, desc)
-// @Success 200 {array} model.Server
+// @Success 200 {array} ServerResponse
 // @Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
+// @Failure 404 {object} echo.HTTPError "No servers found based on the filters provided or server does not exis"
 // @Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
 // @Router /servers [get]
 // @Security Bearer
@@ -59,7 +60,7 @@ func (h HTTP) View(c echo.Context) error {
 
 	servers, numberOfServers, err := h.service.View(c, r.Limit, r.Offset, r.Status, r.Field, r.Order)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch servers: "+err.Error())
+		return echo.NewHTTPError(http.StatusNotFound, "Failed to fetch servers: "+err.Error())
 	}
 
 	response := ServerResponse{
@@ -75,27 +76,29 @@ func (h HTTP) View(c echo.Context) error {
 // @Description Exports filtered server data to an Excel file.
 // @Tags Server
 // @Produce application/octet-stream
-// @Param startCreated query string false "Filter by creation date start"
-// @Param endCreated query string false "Filter by creation date end"
-// @Param startUpdated query string false "Filter by update date start"
-// @Param endUpdated query string false "Filter by update date end"
-// @Param field query string false "Field to sort by"
+// @Param limit query int false "Number of servers returned" default(50)
+// @Param offset query int false "Offset in server list" default(0)
+// @Param status query string false "Filter by status"
+// @Param field query string false "The field to sort by"
 // @Param order query string false "Arrangement order" Enums(asc, desc)
 // @Success 200 {file} file "Excel file"
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
+// @Failure 404 {object} echo.HTTPError "Bad request - No servers found based on the filters provided or server does not exist"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to export servers"
+// @Failure 409 {object} echo.HTTPError "Conflict - Failed to generate or send file"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to generate or send file"
 // @Router /servers/export [get]
 // @Security Bearer
 func (h HTTP) Export(c echo.Context) error {
 	// Optional query parameters
-	startCreated := c.QueryParam("startCreated")
-	endCreated := c.QueryParam("endCreated")
-	startUpdated := c.QueryParam("startUpdated")
-	endUpdated := c.QueryParam("endUpdated")
-	field := c.QueryParam("field")
-	order := c.QueryParam("order")
+	r := new(ViewRequest)
 
-	err := h.service.GetServersFiltered(c, startCreated, endCreated, startUpdated, endUpdated, field, order)
+	// Retrieve servers from the database
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+
+	err := h.service.GetServersFiltered(c, r.Limit, r.Offset, r.Status, r.Field, r.Order)
 	if err != nil {
 		return err
 	}
@@ -210,7 +213,7 @@ func (h HTTP) Delete(c echo.Context) error {
 // @Accept multipart/form-data
 // @Produce json
 // @Param listserver formData file true "Excel file with list server data"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} ImportServerResponse
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
 // @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
@@ -240,12 +243,12 @@ func (h HTTP) CreateMany(c echo.Context) error {
 		return err
 	}
 
-	response := echo.Map{
-		"message":       "Servers upload completed with detailed results.",
-		"success_count": len(createdServers),
-		"failure_count": len(failedLines),
-		"success_lines": successLines,
-		"failure_lines": failedLines,
+	response := ImportServerResponse{
+		Message: "Import servers successfully",
+		Total_success: len(createdServers),
+		Lists_success: successLines,
+		Total_fail: len(failedLines),
+		Lists_fail: failedLines,
 	}
 
 	return c.JSON(http.StatusOK, response)
@@ -286,7 +289,7 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 // @Produce json
 // @Param start query string true "Start Date" description("The start date of the report range, formatted as YYYY-MM-DD")
 // @Param end query string true "End Date" description("The end date of the report range, formatted as YYYY-MM-DD")
-// @Param mail query GetServersReportRequest true "Recipient Email" description("Email address to send the report to")
+// @Param mail query string true "Recipient Email" description("Email address to send the report to")
 // @Success 200 {string} string "Report sent successfully"
 // @Failure 400 {object} echo.HTTPError "Invalid date format or email"
 // @Failure 500 {object} echo.HTTPError "Error occurred while sending the report"

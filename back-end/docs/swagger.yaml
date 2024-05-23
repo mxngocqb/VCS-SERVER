@@ -83,6 +83,32 @@ definitions:
     - name
     - status
     type: object
+  internal_handler_server_transport.ImportServerResponse:
+    properties:
+      lists_fail:
+        items:
+          type: string
+        type: array
+      lists_success:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      total_fail:
+        type: integer
+      total_success:
+        type: integer
+    type: object
+  internal_handler_server_transport.ServerResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
+        type: array
+      total:
+        type: integer
+    type: object
   internal_handler_server_transport.UpdateRequest:
     properties:
       ip:
@@ -203,7 +229,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.Server'
+              $ref: '#/definitions/internal_handler_server_transport.ServerResponse'
             type: array
         "400":
           description: Invalid parameters for limit or offset
@@ -371,23 +397,21 @@ paths:
     get:
       description: Exports filtered server data to an Excel file.
       parameters:
-      - description: Filter by creation date start
+      - default: 50
+        description: Number of servers returned
         in: query
-        name: startCreated
-        type: string
-      - description: Filter by creation date end
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset in server list
         in: query
-        name: endCreated
-        type: string
-      - description: Filter by update date start
+        name: offset
+        type: integer
+      - description: Filter by status
         in: query
-        name: startUpdated
+        name: status
         type: string
-      - description: Filter by update date end
-        in: query
-        name: endUpdated
-        type: string
-      - description: Field to sort by
+      - description: The field to sort by
         in: query
         name: field
         type: string
@@ -435,8 +459,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handler_server_transport.ImportServerResponse'
         "400":
           description: Bad request - Invalid or corrupt file
           schema:
@@ -471,7 +494,8 @@ paths:
         name: end
         required: true
         type: string
-      - in: query
+      - description: Recipient Email
+        in: query
         name: mail
         required: true
         type: string

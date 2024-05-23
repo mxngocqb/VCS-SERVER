@@ -9,9 +9,9 @@ type ServerCache interface {
 	Get(key string) *model.Server
 	Delete(key string) error
 	GetMultiRequest(key string) []model.Server
-	GetTotalServer(key string) int64
+	GetTotalServer(key string) int
 	SetMultiRequest(key string, value []model.Server)  
-	SetTotalServer(key string, value int64)
+	SetTotalServer(key string, value int)
 	ConstructCacheKey(perPage, offset int, status, field, order string) string
 	InvalidateCache()
 }

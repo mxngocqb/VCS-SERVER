@@ -97,7 +97,7 @@ func (serverCache *serverCacheImpl) SetMultiRequest(key string, value []model.Se
 	}
 }
 
-func (serverCache *serverCacheImpl) GetTotalServer(key string) int64 {
+func (serverCache *serverCacheImpl) GetTotalServer(key string) int {
 	// Retrieve data from Redis
 	numberOfServerStr, err := serverCache.client.Get(ctx, key).Result()
 	if err != nil {
@@ -107,11 +107,11 @@ func (serverCache *serverCacheImpl) GetTotalServer(key string) int64 {
 		log.Printf("Cached total server from Redis")
 	}
 
-	numberOfServer, _ := strconv.ParseInt(numberOfServerStr, 10, 64)
+	numberOfServer, _ := strconv.Atoi(numberOfServerStr)
 	return numberOfServer
 }
 
-func (serverCache *serverCacheImpl) SetTotalServer(key string, value int64)  {
+func (serverCache *serverCacheImpl) SetTotalServer(key string, value int)  {
 	// Encode slice of Driver objects to JSON
 	jsonData, err := json.Marshal(value)
 	if err != nil {

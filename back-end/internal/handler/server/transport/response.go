@@ -1,8 +1,19 @@
 package transport
-import "github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
+
+import (
+	"github.com/mxngocqb/VCS-SERVER/back-end/internal/model"
+)
 
 // Define the request and response types for the server service
 type ServerResponse struct {
-	Total int64          `json:"total"`
+	Total int            `json:"total"`
 	Data  []model.Server `json:"data"`
+}
+
+type ImportServerResponse struct {
+	Message 		string 	`json:"message"`
+	Total_success 	int 	`json:"total_success"`
+	Lists_success 	[]string 	`json:"lists_success"`
+	Total_fail 		int 	`json:"total_fail"`
+	Lists_fail 		[]string 	`json:"lists_fail"`
 }

@@ -15,7 +15,7 @@ type HTTP struct {
 // NewHTTP sets up routes related to authentication services
 // @Summary Set up authentication routes
 // @Description It initializes routes for login and other authentication-related processes.
-// @Tags Authentication
+// @Tags Login
 // @Accept json
 // @Produce json
 func NewHTTP(r *echo.Group, service *auth.Service) {

@@ -12,7 +12,7 @@ type MockServerService struct {
 	mock.Mock
 }
 
-func (mockService *MockServerService) View(c echo.Context, limit, offset int, status, field, order string) ([]model.Server, int64, error) {
+func (mockService *MockServerService) View(c echo.Context, limit, offset int, status, field, order string) ([]model.Server, int, error) {
 	args := mockService.Called(c, limit, offset, status, field, order)
 	return args.Get(0).([]model.Server),1, args.Error(1)
 }
@@ -32,13 +32,13 @@ func (mockService *MockServerService) Delete(c echo.Context, id string) error {
 	return args.Error(0)
 }
 
-func (mockService *MockServerService) CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []int, []int, error) {
+func (mockService *MockServerService) CreateMany(c echo.Context, servers []model.Server) ([]model.Server, []string, []string, error) {
 	args := mockService.Called(c, servers)
-	return args.Get(0).([]model.Server), args.Get(1).([]int), args.Get(2).([]int), args.Error(3)
+	return args.Get(0).([]model.Server), args.Get(1).([]string), args.Get(2).([]string), args.Error(3)
 }
 
-func (mockService *MockServerService) GetServersFiltered(c echo.Context, startCreated, endCreated, startUpdated, endUpdated, field, order string) error {
-	args := mockService.Called(c, startCreated, endCreated, startUpdated, endUpdated, field, order)
+func (mockService *MockServerService) GetServersFiltered(c echo.Context, perPage int, offset int, status, field, order string)  error {
+	args := mockService.Called(c, perPage, offset, status, field, order)
 	return args.Error(0)
 }
 
