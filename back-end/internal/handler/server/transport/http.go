@@ -32,21 +32,21 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 	sr.GET("/report", h.GetServersReport)
 }
 
-// View retrieves a list of servers based on the provided filters and pagination.
-// @Summary View servers
-// @Description Retrieves a list of servers based on the provided filters and pagination.
+// View gets a list of servers based on the provided filters and pagination.
+// @Summary Get servers
+// @Description Returns a list of servers based on the provided filters and pagination.
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param limit query int false "Number of servers returned" default(50)
-// @Param offset query int false "Offset in server list" default(0)
+// @Param limit query int false "Limit of servers returned" default(10)
+// @Param offset query int false "Ofset in server list" default(0)
 // @Param status query string false "Filter by status"
-// @Param field query string false "The field to sort by"
-// @Param order query string false "Arrangement order" Enums(asc, desc)
+// @Param field query string false "Field to sort by"
+// @Param order query string false "Order by" Enums(asc, desc)
 // @Success 200 {array} ServerResponse
-// @Failure 400 {object} echo.HTTPError "Invalid parameters for limit or offset"
-// @Failure 404 {object} echo.HTTPError "No servers found based on the filters provided or server does not exis"
-// @Failure 500 {object} echo.HTTPError "Failed to fetch servers due to server error"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid parameters for limit or offset or status or field or order"
+// @Failure 404 {object} echo.HTTPError "Failed to fetch servers: No servers found based on the filters provided or server does not exist"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to fetch servers"
 // @Router /servers [get]
 // @Security Bearer
 func (h HTTP) View(c echo.Context) error {
@@ -71,18 +71,18 @@ func (h HTTP) View(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// Export generates an Excel file of servers based on filters and sends it to the client.
-// @Summary Export servers
-// @Description Exports filtered server data to an Excel file.
+// Export exports filtered server data to an Excel file.
+// @Summary Export servers to Excel
+// @Description Exports server data to an Excel file based on the provided filters.
 // @Tags Server
 // @Produce application/octet-stream
-// @Param limit query int false "Number of servers returned" default(50)
-// @Param offset query int false "Offset in server list" default(0)
+// @Param limit query int false "Limit of servers returned" default(10)
+// @Param offset query int false "Ofset in server list" default(0)
 // @Param status query string false "Filter by status"
-// @Param field query string false "The field to sort by"
-// @Param order query string false "Arrangement order" Enums(asc, desc)
-// @Success 200 {file} file "Excel file"
-// @Failure 400 {object} echo.HTTPError "Bad request - Invalid filter parameters"
+// @Param field query string false "Field to sort by"
+// @Param order query string false "Order by" Enums(asc, desc)
+// @Success 200 {file} file "Excel file containing server data"
+// @Failure 400 {object} echo.HTTPError "Bad request - Invalid parameters for limit or offset or status"
 // @Failure 404 {object} echo.HTTPError "Bad request - No servers found based on the filters provided or server does not exist"
 // @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to export servers"
 // @Failure 409 {object} echo.HTTPError "Conflict - Failed to generate or send file"
@@ -106,13 +106,13 @@ func (h HTTP) Export(c echo.Context) error {
 	return nil
 }
 
-// Creeate adds a new server to the database
+// Creeate creates a new server in the database.
 // @Summary Create server
-// @Description Adds a new server to the database
+// @Description Creates a new server in the database based on the provided data.
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param server body CreateRequest true "Server data to create"
+// @Param server body CreateRequest true "Server data"
 // @Success 201 {object} model.Server
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid server data"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to create serve"
@@ -141,9 +141,9 @@ func (h HTTP) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdServer)
 }
 
-// Update modifies an existing server.
-// @Summary Update a server
-// @Description Updates server details.
+// Update updates a server in the database.
+// @Summary Update server by ID
+// @Description Updates a server in the database based on the provided ID.
 // @Tags Server
 // @Accept json
 // @Produce json
@@ -153,7 +153,7 @@ func (h HTTP) Create(c echo.Context) error {
 // @Failure 400 {object} echo.HTTPError "Bad request - Invalid update data"
 // @Failure 404 {object} echo.HTTPError "Not found - Server not found"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to update server"
-// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to update server"
 // @Router /servers/{id} [put]
 // @Security Bearer
 func (h HTTP) Update(c echo.Context) error {
@@ -183,15 +183,15 @@ func (h HTTP) Update(c echo.Context) error {
 }
 
 // Delete removes a server from the database.
-// @Summary Delete a server
-// @Description Removes a server based on ID.
+// @Summary Delete server by ID
+// @Description Deletes a server from the database based on the provided ID.
 // @Tags Server
 // @Accept json
 // @Produce json
 // @Param id path int true "Server ID"
 // @Success 204
-// @Failure 404 {object} echo.HTTPError "Not found - Server not found"
-// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to delete server"
+// @Failure 404 {object} echo.HTTPError "Not found - Not found server with the provided ID"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to Delete server"
 // @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
 // @Router /servers/{id} [delete]
 // @Security Bearer
@@ -206,17 +206,17 @@ func (h HTTP) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// CreateMany handles the creation of multiple servers from an uploaded file.
-// @Summary Bulk create servers
-// @Description Creates multiple servers from an uploaded Excel file.
+// CreateMany creates multiple servers from an uploaded Excel file.
+// @Summary Import servers from Excel
+// @Description Imports server data from an Excel file and creates multiple servers.
 // @Tags Server
 // @Accept multipart/form-data
 // @Produce json
-// @Param listserver formData file true "Excel file with list server data"
+// @Param listserver formData file true "Excel file containing server data"
 // @Success 200 {object} ImportServerResponse
-// @Failure 400 {object} echo.HTTPError "Bad request - Invalid or corrupt file"
-// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse or save servers"
-// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
+// @Failure 400 {object} echo.HTTPError "Bad request - Failed to read or open file"
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to parse Excel or create servers"
+// @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to import servers"
 // @Router /servers/import [post]
 // @Security Bearer
 func (h HTTP) CreateMany(c echo.Context) error {
@@ -255,17 +255,17 @@ func (h HTTP) CreateMany(c echo.Context) error {
 }
 
 
-// GetServerUpTime retrieves the uptime of a specified server.
-// @Summary Retrieve server uptime
-// @Description Returns the uptime of a server based on a specific date provided in the query.
+// GetServerUpTime get the uptime of a specified server.
+// @Summary Get server uptime based on date and server ID
+// @Description Returns the total hours of uptime for a specific server on a given date.
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param id path int true "Server ID" description("Unique identifier of the server")
-// @Param date query string true "Date" description("The specific date to get the server uptime for, formatted as YYYY-MM-DD")
-// @Success 200 {number} float64 "Hours of uptime"
-// @Failure 400 {object} echo.HTTPError "Invalid date format or server ID"
-// @Failure 500 {object} echo.HTTPError "Internal server error occurred while retrieving uptime"
+// @Param id path int true "Server ID" description("The ID of the server to get uptime for")
+// @Param date query string true "Date" description("Formatted as YYYY-MM-DD, the date to get uptime for")
+// @Success 200 {number} float64 "Total hours of uptime for the server on the specified date"
+// @Failure 400 {object} echo.HTTPError "Invalid server ID or date format"
+// @Failure 500 {object} echo.HTTPError "Internal server error occurred while fetching uptime"
 // @Router /servers/{id}/uptime [get]
 // @Security Bearer
 func (h HTTP) GetServerUpTime(c echo.Context) error {
@@ -282,17 +282,17 @@ func (h HTTP) GetServerUpTime(c echo.Context) error {
 
 
 // GetServersReport generates a report of server statuses within a specified date range.
-// @Summary Generate server status report
-// @Description Retrieves a report of server statuses for a given date range and sends it to the specified email address.
+// @Summary Send daily server report to administator email
+// @Description Send a report of daily server statuses from the specified date range to the provided email.
 // @Tags Server
 // @Accept json
 // @Produce json
-// @Param start query string true "Start Date" description("The start date of the report range, formatted as YYYY-MM-DD")
-// @Param end query string true "End Date" description("The end date of the report range, formatted as YYYY-MM-DD")
-// @Param mail query string true "Recipient Email" description("Email address to send the report to")
-// @Success 200 {string} string "Report sent successfully"
-// @Failure 400 {object} echo.HTTPError "Invalid date format or email"
-// @Failure 500 {object} echo.HTTPError "Error occurred while sending the report"
+// @Param start query string true "From Date" description("Formatted as YYYY-MM-DD, the start date of the report range")
+// @Param end query string true "To Date" description("Formatted as YYYY-MM-DD, the end date of the report range")
+// @Param mail query string true "Administrator Email" description("Administrator email to send the report to")
+// @Success 200 {string} string "Sent report to administrator email successfully"
+// @Failure 400 {object} echo.HTTPError "Invalid administrator email or date range"
+// @Failure 500 {object} echo.HTTPError "Internal server error occurred while generating report"
 // @Router /servers/report [get]
 // @Security Bearer
 func (h HTTP) GetServersReport(c echo.Context) error {

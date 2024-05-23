@@ -195,15 +195,15 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a list of servers based on the provided filters and pagination.
+      description: Returns a list of servers based on the provided filters and pagination.
       parameters:
-      - default: 50
-        description: Number of servers returned
+      - default: 10
+        description: Limit of servers returned
         in: query
         name: limit
         type: integer
       - default: 0
-        description: Offset in server list
+        description: Ofset in server list
         in: query
         name: offset
         type: integer
@@ -211,11 +211,11 @@ paths:
         in: query
         name: status
         type: string
-      - description: The field to sort by
+      - description: Field to sort by
         in: query
         name: field
         type: string
-      - description: Arrangement order
+      - description: Order by
         enum:
         - asc
         - desc
@@ -232,24 +232,30 @@ paths:
               $ref: '#/definitions/internal_handler_server_transport.ServerResponse'
             type: array
         "400":
-          description: Invalid parameters for limit or offset
+          description: Bad request - Invalid parameters for limit or offset or status
+            or field or order
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: 'Failed to fetch servers: No servers found based on the filters
+            provided or server does not exist'
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Failed to fetch servers due to server error
+          description: Internal server error - Failed to fetch servers
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: View servers
+      summary: Get servers
       tags:
       - Server
     post:
       consumes:
       - application/json
-      description: Adds a new server to the database
+      description: Creates a new server in the database based on the provided data.
       parameters:
-      - description: Server data to create
+      - description: Server data
         in: body
         name: server
         required: true
@@ -283,7 +289,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Removes a server based on ID.
+      description: Deletes a server from the database based on the provided ID.
       parameters:
       - description: Server ID
         in: path
@@ -300,22 +306,22 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "404":
-          description: Not found - Server not found
+          description: Not found - Not found server with the provided ID
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Internal server error - Failed to delete server
+          description: Internal server error - Failed to Delete server
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Delete a server
+      summary: Delete server by ID
       tags:
       - Server
     put:
       consumes:
       - application/json
-      description: Updates server details.
+      description: Updates a server in the database based on the provided ID.
       parameters:
       - description: Server ID
         in: path
@@ -340,7 +346,7 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "403":
-          description: Forbidden - User does not have permission to delete server
+          description: Forbidden - User does not have permission to update server
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "404":
@@ -353,15 +359,15 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Update a server
+      summary: Update server by ID
       tags:
       - Server
   /servers/{id}/uptime:
     get:
       consumes:
       - application/json
-      description: Returns the uptime of a server based on a specific date provided
-        in the query.
+      description: Returns the total hours of uptime for a specific server on a given
+        date.
       parameters:
       - description: Server ID
         in: path
@@ -377,33 +383,33 @@ paths:
       - application/json
       responses:
         "200":
-          description: Hours of uptime
+          description: Total hours of uptime for the server on the specified date
           schema:
             type: number
         "400":
-          description: Invalid date format or server ID
+          description: Invalid server ID or date format
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Internal server error occurred while retrieving uptime
+          description: Internal server error occurred while fetching uptime
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Retrieve server uptime
+      summary: Get server uptime based on date and server ID
       tags:
       - Server
   /servers/export:
     get:
-      description: Exports filtered server data to an Excel file.
+      description: Exports server data to an Excel file based on the provided filters.
       parameters:
-      - default: 50
-        description: Number of servers returned
+      - default: 10
+        description: Limit of servers returned
         in: query
         name: limit
         type: integer
       - default: 0
-        description: Offset in server list
+        description: Ofset in server list
         in: query
         name: offset
         type: integer
@@ -411,11 +417,11 @@ paths:
         in: query
         name: status
         type: string
-      - description: The field to sort by
+      - description: Field to sort by
         in: query
         name: field
         type: string
-      - description: Arrangement order
+      - description: Order by
         enum:
         - asc
         - desc
@@ -426,11 +432,24 @@ paths:
       - application/octet-stream
       responses:
         "200":
-          description: Excel file
+          description: Excel file containing server data
           schema:
             type: file
         "400":
-          description: Bad request - Invalid filter parameters
+          description: Bad request - Invalid parameters for limit or offset or status
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "403":
+          description: Forbidden - User does not have permission to export servers
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Bad request - No servers found based on the filters provided
+            or server does not exist
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "409":
+          description: Conflict - Failed to generate or send file
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
@@ -439,16 +458,16 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Export servers
+      summary: Export servers to Excel
       tags:
       - Server
   /servers/import:
     post:
       consumes:
       - multipart/form-data
-      description: Creates multiple servers from an uploaded Excel file.
+      description: Imports server data from an Excel file and creates multiple servers.
       parameters:
-      - description: Excel file with list server data
+      - description: Excel file containing server data
         in: formData
         name: listserver
         required: true
@@ -461,40 +480,40 @@ paths:
           schema:
             $ref: '#/definitions/internal_handler_server_transport.ImportServerResponse'
         "400":
-          description: Bad request - Invalid or corrupt file
+          description: Bad request - Failed to read or open file
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "403":
-          description: Forbidden - User does not have permission to delete server
+          description: Forbidden - User does not have permission to import servers
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Internal server error - Failed to parse or save servers
+          description: Internal server error - Failed to parse Excel or create servers
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Bulk create servers
+      summary: Import servers from Excel
       tags:
       - Server
   /servers/report:
     get:
       consumes:
       - application/json
-      description: Retrieves a report of server statuses for a given date range and
-        sends it to the specified email address.
+      description: Send a report of daily server statuses from the specified date
+        range to the provided email.
       parameters:
-      - description: Start Date
+      - description: From Date
         in: query
         name: start
         required: true
         type: string
-      - description: End Date
+      - description: To Date
         in: query
         name: end
         required: true
         type: string
-      - description: Recipient Email
+      - description: Administrator Email
         in: query
         name: mail
         required: true
@@ -503,20 +522,20 @@ paths:
       - application/json
       responses:
         "200":
-          description: Report sent successfully
+          description: Sent report to administrator email successfully
           schema:
             type: string
         "400":
-          description: Invalid date format or email
+          description: Invalid administrator email or date range
           schema:
             $ref: '#/definitions/echo.HTTPError'
         "500":
-          description: Error occurred while sending the report
+          description: Internal server error occurred while generating report
           schema:
             $ref: '#/definitions/echo.HTTPError'
       security:
       - Bearer: []
-      summary: Generate server status report
+      summary: Send daily server report to administator email
       tags:
       - Server
   /users:
