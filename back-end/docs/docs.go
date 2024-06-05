@@ -69,7 +69,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieves a list of servers based on the provided filters and pagination.",
+                "description": "Returns a list of servers based on the provided filters and pagination.",
                 "consumes": [
                     "application/json"
                 ],
@@ -79,19 +79,19 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "View servers",
+                "summary": "Get servers",
                 "parameters": [
                     {
                         "type": "integer",
-                        "default": 50,
-                        "description": "Number of servers returned",
+                        "default": 10,
+                        "description": "Limit of servers returned",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 0,
-                        "description": "Offset in server list",
+                        "description": "Ofset in server list",
                         "name": "offset",
                         "in": "query"
                     },
@@ -103,7 +103,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "The field to sort by",
+                        "description": "Field to sort by",
                         "name": "field",
                         "in": "query"
                     },
@@ -113,7 +113,7 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "Arrangement order",
+                        "description": "Order by",
                         "name": "order",
                         "in": "query"
                     }
@@ -129,13 +129,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid parameters for limit or offset",
+                        "description": "Bad request - Invalid parameters for limit or offset or status or field or order",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Failed to fetch servers: No servers found based on the filters provided or server does not exist",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Failed to fetch servers due to server error",
+                        "description": "Internal server error - Failed to fetch servers",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -148,7 +154,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Adds a new server to the database",
+                "description": "Creates a new server in the database based on the provided data.",
                 "consumes": [
                     "application/json"
                 ],
@@ -161,7 +167,7 @@ const docTemplate = `{
                 "summary": "Create server",
                 "parameters": [
                     {
-                        "description": "Server data to create",
+                        "description": "Server data",
                         "name": "server",
                         "in": "body",
                         "required": true,
@@ -205,26 +211,26 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Exports filtered server data to an Excel file.",
+                "description": "Exports server data to an Excel file based on the provided filters.",
                 "produces": [
                     "application/octet-stream"
                 ],
                 "tags": [
                     "Server"
                 ],
-                "summary": "Export servers",
+                "summary": "Export servers to Excel",
                 "parameters": [
                     {
                         "type": "integer",
-                        "default": 50,
-                        "description": "Number of servers returned",
+                        "default": 10,
+                        "description": "Limit of servers returned",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 0,
-                        "description": "Offset in server list",
+                        "description": "Ofset in server list",
                         "name": "offset",
                         "in": "query"
                     },
@@ -236,7 +242,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "The field to sort by",
+                        "description": "Field to sort by",
                         "name": "field",
                         "in": "query"
                     },
@@ -246,20 +252,38 @@ const docTemplate = `{
                             "desc"
                         ],
                         "type": "string",
-                        "description": "Arrangement order",
+                        "description": "Order by",
                         "name": "order",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Excel file",
+                        "description": "Excel file containing server data",
                         "schema": {
                             "type": "file"
                         }
                     },
                     "400": {
-                        "description": "Bad request - Invalid filter parameters",
+                        "description": "Bad request - Invalid parameters for limit or offset or status",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User does not have permission to export servers",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad request - No servers found based on the filters provided or server does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - Failed to generate or send file",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -280,7 +304,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Creates multiple servers from an uploaded Excel file.",
+                "description": "Imports server data from an Excel file and creates multiple servers.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -290,11 +314,11 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Bulk create servers",
+                "summary": "Import servers from Excel",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "Excel file with list server data",
+                        "description": "Excel file containing server data",
                         "name": "listserver",
                         "in": "formData",
                         "required": true
@@ -308,19 +332,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request - Invalid or corrupt file",
+                        "description": "Bad request - Failed to read or open file",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "403": {
-                        "description": "Forbidden - User does not have permission to delete server",
+                        "description": "Forbidden - User does not have permission to import servers",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Internal server error - Failed to parse or save servers",
+                        "description": "Internal server error - Failed to parse Excel or create servers",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -335,7 +359,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieves a report of server statuses for a given date range and sends it to the specified email address.",
+                "description": "Send a report of daily server statuses from the specified date range to the provided email.",
                 "consumes": [
                     "application/json"
                 ],
@@ -345,25 +369,25 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Generate server status report",
+                "summary": "Send daily server report to administator email",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Start Date",
+                        "description": "From Date",
                         "name": "start",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "End Date",
+                        "description": "To Date",
                         "name": "end",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Recipient Email",
+                        "description": "Administrator Email",
                         "name": "mail",
                         "in": "query",
                         "required": true
@@ -371,19 +395,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Report sent successfully",
+                        "description": "Sent report to administrator email successfully",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Invalid date format or email",
+                        "description": "Invalid administrator email or date range",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Error occurred while sending the report",
+                        "description": "Internal server error occurred while generating report",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -398,7 +422,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Updates server details.",
+                "description": "Updates a server in the database based on the provided ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -408,7 +432,7 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Update a server",
+                "summary": "Update server by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -441,7 +465,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Forbidden - User does not have permission to delete server",
+                        "description": "Forbidden - User does not have permission to update server",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -466,7 +490,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Removes a server based on ID.",
+                "description": "Deletes a server from the database based on the provided ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -476,7 +500,7 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Delete a server",
+                "summary": "Delete server by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -497,13 +521,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not found - Server not found",
+                        "description": "Not found - Not found server with the provided ID",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Internal server error - Failed to delete server",
+                        "description": "Internal server error - Failed to Delete server",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -518,7 +542,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Returns the uptime of a server based on a specific date provided in the query.",
+                "description": "Returns the total hours of uptime for a specific server on a given date.",
                 "consumes": [
                     "application/json"
                 ],
@@ -528,7 +552,7 @@ const docTemplate = `{
                 "tags": [
                     "Server"
                 ],
-                "summary": "Retrieve server uptime",
+                "summary": "Get server uptime based on date and server ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -547,19 +571,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Hours of uptime",
+                        "description": "Total hours of uptime for the server on the specified date",
                         "schema": {
                             "type": "number"
                         }
                     },
                     "400": {
-                        "description": "Invalid date format or server ID",
+                        "description": "Invalid server ID or date format",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
-                        "description": "Internal server error occurred while retrieving uptime",
+                        "description": "Internal server error occurred while fetching uptime",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
