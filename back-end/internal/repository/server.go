@@ -13,4 +13,5 @@ type ServerRepository interface {
 	Update(id string, s *model.Server) error
 	Delete(id string) error
 	GetServerByID(id string) (*model.Server, error)
+	GetServerStatus() (int64, int64, error)
 }

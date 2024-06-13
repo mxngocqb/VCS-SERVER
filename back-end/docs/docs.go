@@ -415,6 +415,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/servers/status": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Returns the status of the server.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Get server status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler_server_transport.ServerStatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Failed to fetch server status",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/servers/{id}": {
             "put": {
                 "security": [
@@ -511,8 +545,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler_server_transport.ServerStatusResponse"
+                        }
                     },
                     "403": {
                         "description": "Forbidden - User does not have permission to delete server",
@@ -641,6 +678,98 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error - Unable to create user",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/list": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get all users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to retrieve users",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/username/{username}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get details of a user by Username",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "View user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalusername user username format",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - User not found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unable to retrieve user",
                         "schema": {
                             "$ref": "#/definitions/echo.HTTPError"
                         }
@@ -984,6 +1113,17 @@ const docTemplate = `{
                     }
                 },
                 "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler_server_transport.ServerStatusResponse": {
+            "type": "object",
+            "properties": {
+                "offline": {
+                    "type": "integer"
+                },
+                "online": {
                     "type": "integer"
                 }
             }

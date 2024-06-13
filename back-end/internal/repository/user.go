@@ -12,4 +12,5 @@ type UserRepository	interface {
 	GetUserRoleIDs(userID uint) ([]uint, error)
 	GetUserByUsername(username string) (*model.User, error)
 	GetUserByID(id string) (*model.User, error)
+	GetUsers() ([]model.User, error)
 }

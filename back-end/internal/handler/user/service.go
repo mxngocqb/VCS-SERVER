@@ -11,9 +11,11 @@ import (
 
 type IUserService interface {
 	View(ctx echo.Context, id string) (*model.User, error)
+	GetByUsername(ctx echo.Context, username string) (*model.User, error)
 	Create(ctx echo.Context, u *model.User) (*model.User, error)
 	Update(ctx echo.Context, id string, u *model.User) (*model.User, error)
 	Delete(ctx echo.Context, id string) error
+	List(ctx echo.Context) ([]model.User, error)
 }
 type Service struct {
 	repository repository.UserRepository
@@ -28,9 +30,18 @@ func NewUserService(repository repository.UserRepository, rbac handler.RbacServi
 	}
 }
 
+// List retrieves all users from the database.
+func (s *Service) List(ctx echo.Context) ([]model.User, error) {
+	return s.repository.GetUsers()
+}
+
 // View retrieves a user by ID.
 func (s *Service) View(ctx echo.Context, id string) (*model.User, error) {
 	return s.repository.GetUserByID(id)
+}
+
+func (s *Service) GetByUsername(ctx echo.Context, username string) (*model.User, error) {
+	return s.repository.GetUserByUsername(username)
 }
 
 // Create creates a new user in the database.

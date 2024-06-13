@@ -109,6 +109,13 @@ definitions:
       total:
         type: integer
     type: object
+  internal_handler_server_transport.ServerStatusResponse:
+    properties:
+      offline:
+        type: integer
+      online:
+        type: integer
+    type: object
   internal_handler_server_transport.UpdateRequest:
     properties:
       ip:
@@ -299,8 +306,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler_server_transport.ServerStatusResponse'
         "403":
           description: Forbidden - User does not have permission to delete server
           schema:
@@ -538,6 +547,27 @@ paths:
       summary: Send daily server report to administator email
       tags:
       - Server
+  /servers/status:
+    get:
+      consumes:
+      - application/json
+      description: Returns the status of the server.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler_server_transport.ServerStatusResponse'
+        "500":
+          description: Internal server error - Failed to fetch server status
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - Bearer: []
+      summary: Get server status
+      tags:
+      - Server
   /users:
     post:
       consumes:
@@ -683,6 +713,64 @@ paths:
       security:
       - Bearer: []
       summary: Update user
+      tags:
+      - Users
+  /users/list:
+    get:
+      consumes:
+      - application/json
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User'
+            type: array
+        "500":
+          description: Internal Server Error - Unable to retrieve users
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - Bearer: []
+      summary: List users
+      tags:
+      - Users
+  /users/username/{username}:
+    get:
+      consumes:
+      - application/json
+      description: Get details of a user by Username
+      parameters:
+      - description: User username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mxngocqb_VCS-SERVER_back-end_internal_model.User'
+        "400":
+          description: Bad Request - Invalusername user username format
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found - User not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error - Unable to retrieve user
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - Bearer: []
+      summary: View user
       tags:
       - Users
 schemes:

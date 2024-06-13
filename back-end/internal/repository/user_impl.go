@@ -16,9 +16,17 @@ func NewUserRepositoryImpl(db *gorm.DB) UserRepository {
 	return &UserRepositoryImpl{DB: db}
 }
 
+
 // Create creates a new user in the database.
 func (us *UserRepositoryImpl) Create(u *model.User) error {
 	return us.DB.Create(u).Error
+}
+
+// GetUsers retrieves all users from the database.
+func (us *UserRepositoryImpl) GetUsers() ([]model.User, error) {
+	var users []model.User
+	err := us.DB.Find(&users).Error
+	return users, err
 }
 
 // Update updates a user in the database.

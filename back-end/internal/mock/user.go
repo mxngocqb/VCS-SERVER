@@ -19,6 +19,24 @@ func (mockService *MockUserService) View(ctx echo.Context, id string) (*model.Us
     return user, args.Error(1)
 }
 
+func (mockService *MockUserService) List(ctx echo.Context) ([]model.User, error) {
+	args := mockService.Called(ctx)
+	users, ok := args.Get(0).([]model.User)
+	if !ok && users == nil {
+		return nil, args.Error(1)
+	}
+	return users, args.Error(1)
+}
+
+func (mockService *MockUserService) GetByUsername(ctx echo.Context, id string) (*model.User, error) {
+	args := mockService.Called(ctx, id)
+    user, ok := args.Get(0).(*model.User)
+    if !ok && user == nil {
+        return nil, args.Error(1)
+    }
+    return user, args.Error(1)
+}
+
 func (mockService *MockUserService) Create(ctx echo.Context, u *model.User) (*model.User, error) {
 	args := mockService.Called(ctx, u)
 	user, ok := args.Get(0).(*model.User)

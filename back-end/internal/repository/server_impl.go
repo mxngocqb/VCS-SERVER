@@ -18,6 +18,20 @@ func NewServerRepositoryImpl(db *gorm.DB) ServerRepository {
 	return &ServerRepositoryImpl{DB: db}
 }
 
+// GetServerStatus retrieves the number of online and offline servers.
+func (ss *ServerRepositoryImpl) GetServerStatus() (int64, int64, error) {
+	var online, offline int64
+	err := ss.DB.Model(&model.Server{}).Where("status = ?", true).Count(&online).Error
+	if err != nil {
+		return 0, 0, err
+	}
+	err = ss.DB.Model(&model.Server{}).Where("status = ?", false).Count(&offline).Error
+	if err != nil {
+		return 0, 0, err
+	}
+	return online, offline, nil
+}
+
 // GetServersFiltered retrieves servers with pagination and a status filter
 func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, field, order string) ([]model.Server, int, error) {
 	var servers []model.Server
@@ -47,8 +61,12 @@ func (ss *ServerRepositoryImpl) GetServersFiltered(perPage, offset int, status, 
 		return nil, 0, err
 	}
 
-	
-	return servers, len(servers), nil
+	var count int64
+	total := ss.DB.Model(&model.Server{}).Count(&count)
+	if total.Error != nil {
+		return nil, 0, total.Error
+	}
+	return servers, int(count), nil
 }
 
 // GetServersByOptionalDateRange fetches servers based on optional created and updated date ranges.

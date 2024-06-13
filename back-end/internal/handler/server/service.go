@@ -34,6 +34,8 @@ type IServerService interface {
 	GetServersFiltered(c echo.Context, perPage int, offset int, status, field, order string) error
 	GetServerUptime(c echo.Context, serverID string, date string) (time.Duration, error)
 	GetServerReport(c echo.Context, mail, start, end string) error
+	GetServerStatus(c echo.Context) (online int64, offline int64, err error)
+	
 }
 
 type Service struct {
@@ -54,6 +56,17 @@ func NewServerService(repository repository.ServerRepository, rbac handler.RbacS
 		producer:   producer,
 	}
 }
+
+// GetServerStatus retrieves the number of online and offline servers.
+func (s *Service) GetServerStatus(c echo.Context) (int64, int64, error) {
+	// Role ID for viewing server status is 1 (Admin)
+	online, offline, err := s.repository.GetServerStatus()
+	if err != nil {
+		return 0, 0, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve server status: %v", err))
+	}
+	return online, offline, nil
+}
+
 
 // View retrieves servers from the database with optional pagination and status filtering.
 func (s *Service) View(c echo.Context, perPage int, offset int, status, field, order string) ([]model.Server, int, error) {

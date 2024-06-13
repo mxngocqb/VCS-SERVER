@@ -17,3 +17,8 @@ type ImportServerResponse struct {
 	Total_fail 		int 	`json:"total_fail"`
 	Lists_fail 		[]string 	`json:"lists_fail"`
 }
+
+type ServerStatusResponse struct {
+	Online int64 `json:"online"`
+	Offline int64 `json:"offline"`
+}

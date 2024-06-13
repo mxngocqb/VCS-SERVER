@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"log"
 	"net/http"
 
 	_ "github.com/go-playground/validator/v10"
@@ -23,6 +24,8 @@ func NewHTTP(r *echo.Group, service *user.Service) {
 	ur.POST("", h.Create)
 	ur.PUT("/:id", h.Update)
 	ur.DELETE("/:id", h.Delete)
+	ur.GET("/username/:username", h.GetByUsername)
+	ur.GET("/list", h.List)
 }
 
 // View godoc
@@ -41,6 +44,48 @@ func NewHTTP(r *echo.Group, service *user.Service) {
 func (h HTTP) View(c echo.Context) error {
 	id := c.Param("id")
 	viewUser, err := h.service.View(c, id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, viewUser)
+}
+
+// View godoc
+// @Summary List users
+// @Description Get all users
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {object} []model.User
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve users"
+// @Security Bearer
+// @Router /users/list [get]
+func (h HTTP) List(c echo.Context) error {
+	log.Println("List users")
+	users, err := h.service.List(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, users)
+}
+
+// View godoc
+// @Summary View user
+// @Description Get details of a user by Username
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param username path string true "User username"
+// @Success 200 {object} model.User
+// @Failure 400 {object} echo.HTTPError "Bad Request - Invalusername user username format"
+// @Failure 404 {object} echo.HTTPError "Not Found - User not found"
+// @Failure 500 {object} echo.HTTPError "Internal Server Error - Unable to retrieve user"
+// @Security Bearer
+// @Router /users/username/{username} [get]
+func (h HTTP) GetByUsername(c echo.Context) error {
+	username := c.Param("username")
+	viewUser, err := h.service.GetByUsername(c, username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -76,7 +121,7 @@ func (h HTTP) Create(c echo.Context) error {
 	// Create new user with roles in the database
 	createdUser, err := h.service.Create(c, newUser)
 	if err != nil {
-		return err 
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, createdUser)
@@ -142,5 +187,3 @@ func (h HTTP) Delete(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
-
-

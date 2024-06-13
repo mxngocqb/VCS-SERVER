@@ -31,7 +31,7 @@ func Start(cfg *config.Config) error {
 	if err != nil {
 		log.Fatalf("Error creating logger: %v", err)
 	}
-	
+
 	// Initialize the database using singleton pattern
 	repository.InitDB(cfg, logger)
 	db, err := repository.GetDB()
@@ -46,7 +46,11 @@ func Start(cfg *config.Config) error {
 
 	// Initialize Redis service
 	redisClient, expiration, err := cache.ConnectRedis(cfg)
+	if err != nil {
+		return err
+	}
 	serverCache := cache.NewServerRedisCache(redisClient, expiration)
+
 	// Initialize Elastic service
 	elasticClient, err := elastic.ConnectElasticSearch(cfg)
 	if err != nil {
@@ -56,6 +60,7 @@ func Start(cfg *config.Config) error {
 	if err := elasticService.CreateStatusLogIndex(); err != nil {
 		return err
 	}
+
 	// Initialize Kafka services
 	kafkaLogger := util.KafkaLogger()
 	producerService := kafka.NewProducerService(cfg, kafkaLogger)
@@ -75,6 +80,7 @@ func Start(cfg *config.Config) error {
 
 	// Set up Echo Server
 	e := echo.New()
+
 	// Configure lumberjack logger for API logs
 	e.Logger.SetOutput(util.APILog)
 	// Middleware to log HTTP requests
@@ -85,6 +91,18 @@ func Start(cfg *config.Config) error {
 	// Middleware to handle CORS
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 	e.Binder = &util.CustomBinder{Binder: &echo.DefaultBinder{}}
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:5173", "https://ace-rationally-flounder.ngrok-free.app"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+		ExposeHeaders: []string{echo.HeaderAuthorization},
+	}))
 
 	// Set up Swagger documentation
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

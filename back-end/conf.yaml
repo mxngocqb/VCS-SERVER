@@ -25,3 +25,32 @@ elastic:
         - http://es-container:9200
     index: vcs_sms
     type: _doc
+
+
+# database:
+#     host: localhost
+#     name: vcs_sms
+#     port: 5432
+#     user: postgres
+#     password: postgres
+#     database: vcs_sms
+
+# jwt:
+#     secret: secret
+#     expiration: 3600
+
+# redis:
+#     host: localhost:6379
+#     expiration: 36000
+#     password: 
+
+# kafka:
+#     brokers: 
+#         - localhost:9092
+#     group_id: vcs_sms
+
+# elastic:
+#     host: 
+#         - http://localhost:9200
+#     index: vcs_sms
+#     type: _doc 

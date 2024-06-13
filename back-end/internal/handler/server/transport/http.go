@@ -2,6 +2,7 @@ package transport
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -30,6 +31,31 @@ func NewHTTP(r *echo.Group, service *server.Service) {
 	sr.GET("/export", h.Export)
 	sr.GET("/:id/uptime", h.GetServerUpTime)
 	sr.GET("/report", h.GetServersReport)
+	sr.GET("/status", h.GetServerStatus)
+}
+
+
+// GetServerStatus gets the status of the server.
+// @Summary Get server status
+// @Description Returns the status of the server.
+// @Tags Server
+// @Accept json
+// @Produce json
+// @Success 200 {object} ServerStatusResponse
+// @Failure 500 {object} echo.HTTPError "Internal server error - Failed to fetch server status"
+// @Router /servers/status [get]
+// @Security Bearer
+func (h HTTP) GetServerStatus(c echo.Context) error {
+	online, offline, err := h.service.GetServerStatus(c)
+	if err != nil {
+		return err
+	}
+	log.Println("online: ", online)
+	response := ServerStatusResponse{
+		Online:  online,
+		Offline: offline,
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 // View gets a list of servers based on the provided filters and pagination.
@@ -189,7 +215,7 @@ func (h HTTP) Update(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Server ID"
-// @Success 204
+// @Success 200 {object} ServerStatusResponse
 // @Failure 404 {object} echo.HTTPError "Not found - Not found server with the provided ID"
 // @Failure 500 {object} echo.HTTPError "Internal server error - Failed to Delete server"
 // @Failure 403 {object} echo.HTTPError "Forbidden - User does not have permission to delete server"
