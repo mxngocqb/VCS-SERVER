@@ -97,7 +97,7 @@ func SendReport(email []string, start, end time.Time, elasticService *ElasticSer
 			</div>
 			<div class="footer">
 				<p>Best regards,<br>
-				Server Management Systems - VCS Team</p>
+				Server Management Systems</p>
 			</div>
 		</div>
 	</body>

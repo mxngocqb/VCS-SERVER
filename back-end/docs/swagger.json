@@ -5,8 +5,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "This is the API documentation for the Viettel Cyber Security - Server Management System.",
-        "title": "Viettel Cyber Security - Server Management System",
+        "title": "Server Management System",
         "contact": {},
         "version": "1.0"
     },

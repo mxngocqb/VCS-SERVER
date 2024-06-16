@@ -162,9 +162,7 @@ definitions:
 host: localhost:8090
 info:
   contact: {}
-  description: This is the API documentation for the Viettel Cyber Security - Server
-    Management System.
-  title: Viettel Cyber Security - Server Management System
+  title: Server Management System
   version: "1.0"
 paths:
   /login:
